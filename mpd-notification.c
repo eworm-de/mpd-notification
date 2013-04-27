@@ -53,6 +53,8 @@ int main(int argc, char ** argv) {
         }
 
 	notification = notify_notification_new(TEXT_TOPIC, NULL, ICON_SOUND);
+	notify_notification_set_category(notification, PROGNAME);
+	notify_notification_set_urgency (notification, NOTIFY_URGENCY_NORMAL);
 
 	while(mpd_run_idle_mask(conn, MPD_IDLE_PLAYER)) {
 		mpd_command_list_begin(conn, true);
@@ -91,8 +93,6 @@ int main(int argc, char ** argv) {
 		notify_notification_update(notification, TEXT_TOPIC, notifystr, ICON_SOUND);
 
 		notify_notification_set_timeout(notification, NOTIFICATION_TIMEOUT);
-		notify_notification_set_category(notification, PROGNAME);
-		notify_notification_set_urgency (notification, NOTIFY_URGENCY_NORMAL);
 
 		while(!notify_notification_show(notification, &error)) {
 			if (errcount > 1) {
