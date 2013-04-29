@@ -33,7 +33,7 @@ int main(int argc, char ** argv) {
 	char * album = NULL, * artist = NULL, * notifystr = NULL, * title = NULL;
 	GError * error = NULL;
 	unsigned short int errcount = 0, state = MPD_STATE_UNKNOWN;
-        NotifyNotification * notification = NULL;
+	NotifyNotification * notification = NULL;
 	struct mpd_connection * conn = NULL;
 	struct mpd_song * song = NULL;
 
@@ -44,13 +44,13 @@ int main(int argc, char ** argv) {
 	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
 		fprintf(stderr,"%s: %s\n", argv[0], mpd_connection_get_error_message(conn));
 		mpd_connection_free(conn);
-                exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
-        if(!notify_init(PROGNAME)) {
-                fprintf(stderr, "%s: Can't create notify.\n", argv[0]);
-                exit(EXIT_FAILURE);
-        }
+	if(!notify_init(PROGNAME)) {
+		fprintf(stderr, "%s: Can't create notify.\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
 
 	notification = notify_notification_new(TEXT_TOPIC, NULL, ICON_SOUND);
 	notify_notification_set_category(notification, PROGNAME);
