@@ -37,7 +37,11 @@ int main(int argc, char ** argv) {
 	struct mpd_connection * conn = NULL;
 	struct mpd_song * song = NULL;
 
-	printf("%s: %s v%s (compiled: " __DATE__ ", " __TIME__ ")\n", argv[0], PROGNAME, VERSION);
+	printf("%s: %s v%s (compiled: " __DATE__ ", " __TIME__
+#if DEBUG
+			", with debug output"
+#endif			
+			")\n", argv[0], PROGNAME, VERSION);
 
 	conn = mpd_connection_new(NULL, 0, 30000);
 
