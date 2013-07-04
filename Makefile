@@ -1,6 +1,7 @@
 # mpd-notification - Notify about tracks played by mpd
 
 CC	:= gcc
+CFLAGS	+= -O2 -Wall -Werror
 CFLAGS	+= $(shell pkg-config --cflags --libs libmpdclient) \
 	   $(shell pkg-config --cflags --libs libnotify)
 VERSION	= $(shell git describe --tags --long)
