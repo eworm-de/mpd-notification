@@ -40,7 +40,7 @@ int main(int argc, char ** argv) {
 	printf("%s: %s v%s (compiled: " __DATE__ ", " __TIME__
 #if DEBUG
 			", with debug output"
-#endif			
+#endif
 			")\n", argv[0], PROGNAME, VERSION);
 
 	conn = mpd_connection_new(NULL, 0, 30000);
