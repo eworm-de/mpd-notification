@@ -56,7 +56,12 @@ int main(int argc, char ** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	notification = notify_notification_new(TEXT_TOPIC, NULL, ICON_SOUND);
+	notification =
+#if NOTIFY_CHECK_VERSION(0, 7, 0)
+		notify_notification_new(TEXT_TOPIC, NULL, ICON_SOUND);
+#else
+		notify_notification_new(TEXT_TOPIC, NULL, ICON_SOUND, NULL);
+#endif
 	notify_notification_set_category(notification, PROGNAME);
 	notify_notification_set_urgency (notification, NOTIFY_URGENCY_NORMAL);
 
