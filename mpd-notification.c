@@ -84,7 +84,7 @@ int main(int argc, char ** argv) {
 			if ((album = g_markup_escape_text(mpd_song_get_tag(song, MPD_TAG_ALBUM, 0), -1)) == NULL)
 				album = TEXT_UNKNOWN;
 
-			notifystr = malloc(strlen(TEXT_PLAY) + strlen(title) + strlen(artist) + strlen(album));
+			notifystr = malloc(sizeof(TEXT_PLAY) + strlen(title) + strlen(artist) + strlen(album));
 			sprintf(notifystr, TEXT_PLAY, title, artist, album);
 
 			mpd_song_free(song);
