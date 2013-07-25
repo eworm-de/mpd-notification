@@ -14,20 +14,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "config.h"
+
 #define PROGNAME	"mpd-notification"
 
 #define NOTIFICATION_TIMEOUT	10000
 #ifndef DEBUG
 #define DEBUG	0
 #endif
-
-#define ICON_SOUND	"sound"
-
-#define TEXT_TOPIC	"MPD Notification"
-#define TEXT_PLAY	"Playing <b>%s</b>\nby <i>%s</i>\nfrom <i>%s</i>"
-#define TEXT_PAUSE	"Paused playback"
-#define TEXT_STOP	"Stopped playback"
-#define TEXT_UNKNOWN	"(unknown)"
 
 int main(int argc, char ** argv) {
 	char * album = NULL, * artist = NULL, * notifystr = NULL, * title = NULL;

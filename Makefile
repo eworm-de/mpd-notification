@@ -3,6 +3,7 @@
 CC	:= gcc
 MD	:= markdown
 INSTALL	:= install
+CP	:= cp
 RM	:= rm
 CFLAGS	+= -O2 -Wall -Werror
 CFLAGS	+= $(shell pkg-config --cflags --libs libmpdclient) \
@@ -11,9 +12,12 @@ VERSION	= $(shell git describe --tags --long)
 
 all: mpd-notification README.html
 
-mpd-notification: mpd-notification.c
+mpd-notification: mpd-notification.c config.h
 	$(CC) $(CFLAGS) -o mpd-notification mpd-notification.c \
 		-DVERSION="\"$(VERSION)\""
+
+config.h:
+	$(CP) config.def.h config.h
 
 README.html: README.md
 	$(MD) README.md > README.html
