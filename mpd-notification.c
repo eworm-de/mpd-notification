@@ -32,9 +32,9 @@ int main(int argc, char ** argv) {
 	struct mpd_song * song = NULL;
 
 	printf("%s: %s v%s (compiled: " __DATE__ ", " __TIME__
-#if DEBUG
+#			if DEBUG
 			", with debug output"
-#endif
+#			endif
 			")\n", argv[0], PROGNAME, VERSION);
 
 	conn = mpd_connection_new(NULL, 0, 30000);
@@ -51,11 +51,11 @@ int main(int argc, char ** argv) {
 	}
 
 	notification =
-#if NOTIFY_CHECK_VERSION(0, 7, 0)
+#		if NOTIFY_CHECK_VERSION(0, 7, 0)
 		notify_notification_new(TEXT_TOPIC, NULL, ICON_SOUND);
-#else
+#		else
 		notify_notification_new(TEXT_TOPIC, NULL, ICON_SOUND, NULL);
-#endif
+#		endif
 	notify_notification_set_category(notification, PROGNAME);
 	notify_notification_set_urgency (notification, NOTIFY_URGENCY_NORMAL);
 
@@ -89,9 +89,9 @@ int main(int argc, char ** argv) {
 		else
 			notifystr = TEXT_UNKNOWN;
 
-#if DEBUG
+#		if DEBUG
 		printf("%s: %s\n", argv[0], notifystr);
-#endif
+#		endif
 
 		notify_notification_update(notification, TEXT_TOPIC, notifystr, ICON_SOUND);
 
