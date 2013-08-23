@@ -8,4 +8,5 @@
 #define TEXT_PLAY	"Playing <b>%s</b>\nby <i>%s</i>\nfrom <i>%s</i>"
 #define TEXT_PAUSE	"Paused playback"
 #define TEXT_STOP	"Stopped playback"
+#define TEXT_NONE	"No action received yet."
 #define TEXT_UNKNOWN	"(unknown)"

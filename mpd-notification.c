@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 
 #include "config.h"
 
@@ -23,41 +24,59 @@
 #define DEBUG	0
 #endif
 
+/* global variables */
+char *program = NULL;
+NotifyNotification * notification = NULL;
+
+/*** show_again ***/
+void show_again(int signal) {
+	GError * error = NULL;
+
+	if (!notify_notification_show(notification, &error)) {
+		g_printerr("%s: Error \"%s\" while trying to show notification again.\n", program, error->message);
+		g_error_free(error);
+	}
+}
+
+/*** main ***/
 int main(int argc, char ** argv) {
 	char * album = NULL, * artist = NULL, * notifystr = NULL, * title = NULL;
 	GError * error = NULL;
 	unsigned short int errcount = 0, state = MPD_STATE_UNKNOWN;
-	NotifyNotification * notification = NULL;
 	struct mpd_connection * conn = NULL;
 	struct mpd_song * song = NULL;
+
+	program = argv[0];
 
 	printf("%s: %s v%s (compiled: " __DATE__ ", " __TIME__
 #			if DEBUG
 			", with debug output"
 #			endif
-			")\n", argv[0], PROGNAME, VERSION);
+			")\n", program, PROGNAME, VERSION);
 
 	conn = mpd_connection_new(NULL, 0, 30000);
 
 	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
-		fprintf(stderr,"%s: %s\n", argv[0], mpd_connection_get_error_message(conn));
+		fprintf(stderr,"%s: %s\n", program, mpd_connection_get_error_message(conn));
 		mpd_connection_free(conn);
 		exit(EXIT_FAILURE);
 	}
 
 	if(!notify_init(PROGNAME)) {
-		fprintf(stderr, "%s: Can't create notify.\n", argv[0]);
+		fprintf(stderr, "%s: Can't create notify.\n", program);
 		exit(EXIT_FAILURE);
 	}
 
 	notification =
 #		if NOTIFY_CHECK_VERSION(0, 7, 0)
-		notify_notification_new(TEXT_TOPIC, NULL, ICON_SOUND);
+		notify_notification_new(TEXT_TOPIC, TEXT_NONE, ICON_SOUND);
 #		else
-		notify_notification_new(TEXT_TOPIC, NULL, ICON_SOUND, NULL);
+		notify_notification_new(TEXT_TOPIC, TEXT_NONE, ICON_SOUND, NULL);
 #		endif
 	notify_notification_set_category(notification, PROGNAME);
 	notify_notification_set_urgency (notification, NOTIFY_URGENCY_NORMAL);
+
+	signal(SIGUSR1, show_again);
 
 	while(mpd_run_idle_mask(conn, MPD_IDLE_PLAYER)) {
 		mpd_command_list_begin(conn, true);
@@ -90,7 +109,7 @@ int main(int argc, char ** argv) {
 			notifystr = TEXT_UNKNOWN;
 
 #		if DEBUG
-		printf("%s: %s\n", argv[0], notifystr);
+		printf("%s: %s\n", program, notifystr);
 #		endif
 
 		notify_notification_update(notification, TEXT_TOPIC, notifystr, ICON_SOUND);
@@ -99,10 +118,10 @@ int main(int argc, char ** argv) {
 
 		while(!notify_notification_show(notification, &error)) {
 			if (errcount > 1) {
-				fprintf(stderr, "%s: Looks like we can not reconnect to notification daemon... Exiting.\n", argv[0]);
+				fprintf(stderr, "%s: Looks like we can not reconnect to notification daemon... Exiting.\n", program);
 				exit(EXIT_FAILURE);
 			} else {
-				g_printerr("%s: Error \"%s\" while trying to show notification. Trying to reconnect.\n", argv[0], error->message);
+				g_printerr("%s: Error \"%s\" while trying to show notification. Trying to reconnect.\n", program, error->message);
 				errcount++;
 
 				g_error_free(error);
@@ -113,7 +132,7 @@ int main(int argc, char ** argv) {
 				usleep(500 * 1000);
 
 				if(!notify_init(PROGNAME)) {
-					fprintf(stderr, "%s: Can't create notify.\n", argv[0]);
+					fprintf(stderr, "%s: Can't create notify.\n", program);
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -125,6 +144,9 @@ int main(int argc, char ** argv) {
 		mpd_response_finish(conn);
 	}
 	mpd_connection_free(conn);
+
+	g_object_unref(G_OBJECT(notification));
+	notify_uninit();
 
 	return EXIT_SUCCESS;
 }
