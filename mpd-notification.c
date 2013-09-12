@@ -54,6 +54,10 @@ int main(int argc, char ** argv) {
 #			endif
 			")\n", program, PROGNAME, VERSION);
 
+#	if DEBUG
+	printf("%s: Started with PID %d\n", program, getpid());
+#	endif
+
 	conn = mpd_connection_new(NULL, 0, 30000);
 
 	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
