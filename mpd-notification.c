@@ -43,6 +43,8 @@ int main(int argc, char ** argv) {
 	char * album = NULL, * artist = NULL, * notifystr = NULL, * title = NULL;
 	GError * error = NULL;
 	unsigned short int errcount = 0, state = MPD_STATE_UNKNOWN;
+	const char * mpd_host = MPD_HOST;
+	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT;
 	struct mpd_connection * conn = NULL;
 	struct mpd_song * song = NULL;
 
@@ -58,7 +60,7 @@ int main(int argc, char ** argv) {
 	printf("%s: Started with PID %d\n", program, getpid());
 #	endif
 
-	conn = mpd_connection_new(NULL, 0, 30000);
+	conn = mpd_connection_new(mpd_host, mpd_port, mpd_timeout);
 
 	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
 		fprintf(stderr,"%s: %s\n", program, mpd_connection_get_error_message(conn));

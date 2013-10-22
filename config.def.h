@@ -10,3 +10,15 @@
 #define TEXT_STOP	"Stopped playback"
 #define TEXT_NONE	"No action received yet."
 #define TEXT_UNKNOWN	"(unknown)"
+
+/* how to connect to mpd host ?
+ * MPD_HOST is the server's host name, IP address or Unix socket path. If the
+ * resolver returns more than one IP address for a host name, this functions
+ * tries all of them until one accepts the connection. NULL is allowed here,
+ * which will connect to the default host.
+ * MPD_PORT is the TCP port to connect to, 0 for default port. If "host" is
+ * a Unix socket path, this parameter is ignored.
+ * MPD_TIMEOUT is the timeout in milliseconds, 0 for the default timeout. */
+#define MPD_HOST	NULL
+#define MPD_PORT	0
+#define MPD_TIMEOUT	0
