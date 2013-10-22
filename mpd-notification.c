@@ -47,6 +47,7 @@ int main(int argc, char ** argv) {
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT;
 	struct mpd_connection * conn = NULL;
 	struct mpd_song * song = NULL;
+	unsigned int i;
 
 	program = argv[0];
 
@@ -59,6 +60,32 @@ int main(int argc, char ** argv) {
 #	if DEBUG
 	printf("%s: Started with PID %d\n", program, getpid());
 #	endif
+
+	for (i = 1; i < argc; i++) {
+		switch ((int)argv[i][0]) {
+			case '-':
+				switch ((int)argv[i][1]) {
+					case 'p':
+						mpd_port = atoi(argv[i] + 2);
+						printf("%s: using port %d\n", program, mpd_port);
+						break;
+					case 'h':
+						fprintf(stderr, "usage: %s [-pPORT] [-h] [-HHOST]\n", program);
+						return EXIT_SUCCESS;
+					case 'H':
+						mpd_host = argv[i] + 2;
+						printf("%s: using host %s\n", program, mpd_host);
+						break;
+					default:
+						fprintf(stderr, "%s: unknown option: '%s'\n", program, argv[i]);
+						return EXIT_FAILURE;
+				}
+				break;
+			default:
+				fprintf(stderr, "%s: unknown command line argument: '%s'\n", program, argv[i]);
+				return EXIT_FAILURE;
+		}
+	}
 
 	conn = mpd_connection_new(mpd_host, mpd_port, mpd_timeout);
 
