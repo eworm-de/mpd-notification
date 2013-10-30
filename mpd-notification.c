@@ -74,6 +74,10 @@ int main(int argc, char ** argv) {
 						return EXIT_SUCCESS;
 					case 'H':
 						mpd_host = argv[i] + 2;
+						if (strlen(mpd_host) == 0) {
+							fprintf(stderr, "No host given!\n");
+							return EXIT_FAILURE;
+						}
 						printf("%s: using host %s\n", program, mpd_host);
 						break;
 					default:
