@@ -40,3 +40,6 @@ install-doc: README.html
 
 clean:
 	$(RM) -f *.o *~ README.html mpd-notification
+
+distclean:
+	$(RM) -f *.o *~ README.html mpd-notification config.h
