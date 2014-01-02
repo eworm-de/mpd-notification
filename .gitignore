@@ -4,3 +4,5 @@ config.h
 mpd-notification
 README.html
 version.h
+mpd-notification-*.tar.xz
+mpd-notification-*.tar.xz.asc

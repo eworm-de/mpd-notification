@@ -44,3 +44,7 @@ clean:
 
 distclean:
 	$(RM) -f *.o *~ README.html mpd-notification version.h config.h
+
+release:
+	git archive --format=tar.xz --prefix=mpd-notification-$(VERSION)/ $(VERSION) > mpd-notification-$(VERSION).tar.xz
+	gpg -ab mpd-notification-$(VERSION).tar.xz
