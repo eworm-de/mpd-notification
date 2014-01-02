@@ -6,23 +6,24 @@ INSTALL	:= install
 CP	:= cp
 RM	:= rm
 CFLAGS	+= -O2 -Wall -Werror
-CFLAGS	+= $(shell pkg-config --cflags --libs libmpdclient) \
-	   $(shell pkg-config --cflags --libs libnotify)
-VERSION := $(shell git describe --tags --long 2>/dev/null)
+CFLAGS	+= $(shell pkg-config --cflags --libs libmpdclient)
+CFLAGS	+= $(shell pkg-config --cflags --libs libnotify)
 # this is just a fallback in case you do not use git but downloaded
 # a release tarball...
-ifeq ($(VERSION),)
 VERSION := 0.4.3
-endif
 
 all: mpd-notification README.html
 
-mpd-notification: mpd-notification.c config.h
-	$(CC) $(CFLAGS) -o mpd-notification mpd-notification.c \
-		-DVERSION="\"$(VERSION)\""
+mpd-notification: mpd-notification.c config.h version.h
+	$(CC) $(CFLAGS) -o mpd-notification mpd-notification.c
 
 config.h:
 	$(CP) config.def.h config.h
+
+version.h: $(wildcard .git/HEAD .git/index .git/refs/tags/*) Makefile
+	echo "#ifndef VERSION" > $@
+	echo "#define VERSION \"$(shell git describe --tags --long 2>/dev/null || echo ${VERSION})\"" >> $@
+	echo "#endif" >> $@
 
 README.html: README.md
 	$(MD) README.md > README.html
@@ -39,7 +40,7 @@ install-doc: README.html
 	$(INSTALL) -D -m0644 screenshot.png $(DESTDIR)/usr/share/doc/mpd-notification/screenshot.png
 
 clean:
-	$(RM) -f *.o *~ README.html mpd-notification
+	$(RM) -f *.o *~ README.html mpd-notification version.h
 
 distclean:
-	$(RM) -f *.o *~ README.html mpd-notification config.h
+	$(RM) -f *.o *~ README.html mpd-notification version.h config.h

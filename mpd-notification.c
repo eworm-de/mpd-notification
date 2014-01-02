@@ -16,6 +16,7 @@
 #include <signal.h>
 
 #include "config.h"
+#include "version.h"
 
 #define PROGNAME	"mpd-notification"
 
