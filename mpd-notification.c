@@ -62,35 +62,21 @@ int main(int argc, char ** argv) {
 	printf("%s: Started with PID %d\n", program, getpid());
 #	endif
 
-	for (i = 1; i < argc; i++) {
-		switch ((int)argv[i][0]) {
-			case '-':
-				switch ((int)argv[i][1]) {
-					case 'p':
-						mpd_port = atoi(argv[i] + 2);
-						printf("%s: using port %d\n", program, mpd_port);
-						break;
-					case 'h':
-						fprintf(stderr, "usage: %s [-pPORT] [-h] [-HHOST]\n", program);
-						return EXIT_SUCCESS;
-					case 'H':
-						mpd_host = argv[i] + 2;
-						if (strlen(mpd_host) == 0) {
-							fprintf(stderr, "No host given!\n");
-							return EXIT_FAILURE;
-						}
-						printf("%s: using host %s\n", program, mpd_host);
-						break;
-					default:
-						fprintf(stderr, "%s: unknown option: '%s'\n", program, argv[i]);
-						return EXIT_FAILURE;
-				}
+	/* get command line options */
+	while ((i = getopt(argc, argv, "hH:p:")) != -1)
+		switch (i) {
+			case 'h':
+				fprintf(stderr, "usage: %s [-h] [-H HOST] [-p PORT]\n", program);
+				return EXIT_SUCCESS;
+			case 'p':
+				mpd_port = atoi(optarg);
+				printf("%s: using port %d\n", program, mpd_port);
 				break;
-			default:
-				fprintf(stderr, "%s: unknown command line argument: '%s'\n", program, argv[i]);
-				return EXIT_FAILURE;
+			case 'H':
+				mpd_host = optarg;
+				printf("%s: using host %s\n", program, mpd_host);
+				break;
 		}
-	}
 
 	conn = mpd_connection_new(mpd_host, mpd_port, mpd_timeout);
 
