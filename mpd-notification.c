@@ -115,14 +115,18 @@ int main(int argc, char ** argv) {
 			song = mpd_recv_song(conn);
 
 			if ((title = g_markup_escape_text(mpd_song_get_tag(song, MPD_TAG_TITLE, 0), -1)) == NULL)
-				title = TEXT_UNKNOWN;
+				title = strdup(TEXT_UNKNOWN);
 			if ((artist = g_markup_escape_text(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0), -1)) == NULL)
-				artist = TEXT_UNKNOWN;
+				artist = strdup(TEXT_UNKNOWN);
 			if ((album = g_markup_escape_text(mpd_song_get_tag(song, MPD_TAG_ALBUM, 0), -1)) == NULL)
-				album = TEXT_UNKNOWN;
+				album = strdup(TEXT_UNKNOWN);
 
 			notifystr = malloc(sizeof(TEXT_PLAY) + strlen(title) + strlen(artist) + strlen(album));
 			sprintf(notifystr, TEXT_PLAY, title, artist, album);
+
+			free(title);
+			free(artist);
+			free(album);
 
 			mpd_song_free(song);
 		} else if (state == MPD_STATE_PAUSE)
