@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <getopt.h>
 
 #include "config.h"
 #include "version.h"
@@ -24,6 +25,15 @@
 #ifndef DEBUG
 #define DEBUG	0
 #endif
+
+const static char optstring[] = "hH:p:";
+const static struct option options_long[] = {
+	/* name		has_arg			flag	val */
+	{ "help",	no_argument,		NULL,	'h' },
+	{ "host",	required_argument,	NULL,	'H' },
+	{ "port",	required_argument,	NULL,	'p' },
+	{ 0, 0, 0, 0 }
+};
 
 /* global variables */
 char *program = NULL;
@@ -63,7 +73,7 @@ int main(int argc, char ** argv) {
 #	endif
 
 	/* get command line options */
-	while ((i = getopt(argc, argv, "hH:p:")) != -1)
+	while ((i = getopt_long(argc, argv, optstring, options_long, NULL)) != -1)
 		switch (i) {
 			case 'h':
 				fprintf(stderr, "usage: %s [-h] [-H HOST] [-p PORT]\n", program);
