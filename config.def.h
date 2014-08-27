@@ -21,6 +21,10 @@
 #define TEXT_NONE	"No action received yet."
 #define TEXT_UNKNOWN	"(unknown)"
 
+/* this is a regular expression that has to match image filename used
+ * for artwork */
+#define REGEX_ARTWORK   "\\(folder\\|cover\\)\\.\\(jpg\\|png\\)"
+
 /* how to connect to mpd host ?
  * MPD_HOST is the server's host name, IP address or Unix socket path. If the
  * resolver returns more than one IP address for a host name, this functions

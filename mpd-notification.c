@@ -15,6 +15,7 @@
 #include <string.h>
 #include <signal.h>
 #include <getopt.h>
+#include <regex.h>
 
 #include "config.h"
 #include "version.h"
@@ -26,11 +27,12 @@
 #define DEBUG	0
 #endif
 
-const static char optstring[] = "hH:p:";
+const static char optstring[] = "hH:m:p:";
 const static struct option options_long[] = {
 	/* name		has_arg			flag	val */
 	{ "help",	no_argument,		NULL,	'h' },
 	{ "host",	required_argument,	NULL,	'H' },
+	{ "music-dir",	required_argument,	NULL,	'm' },
 	{ "port",	required_argument,	NULL,	'p' },
 	{ 0, 0, 0, 0 }
 };
@@ -49,18 +51,59 @@ void show_again(int signal) {
 	}
 }
 
+/*** get_icon ***/
+char * get_icon(const char * music_dir, const char * uri) {
+	char * icon = NULL, * uri_dirname;
+	DIR * dir;
+	struct dirent * entry;
+	regex_t regex;
+
+	uri_dirname = strdup(uri);
+	*strrchr(uri_dirname, '/') = 0;
+
+	if ((dir = opendir(uri_dirname)) == NULL) {
+		fprintf(stderr, "Can not read directory '%s': ", uri_dirname);
+		return NULL;
+	}
+
+	if (regcomp(&regex, REGEX_ARTWORK, REG_NOSUB + REG_ICASE) != 0) {
+		fprintf(stderr, "Could not compile regex\n");
+		return NULL;
+	}
+
+	while ((entry = readdir(dir))) {
+		if (*entry->d_name == '.')
+			continue;
+
+		if (regexec(&regex, entry->d_name, 0, NULL, 0) == 0) {
+			icon = malloc(strlen(music_dir) + strlen(uri_dirname) + strlen(entry->d_name) + 3);
+			sprintf(icon, "%s/%s/%s", music_dir, uri_dirname, entry->d_name);
+			break;
+		}
+	}
+
+	regfree(&regex);
+	closedir(dir);
+
+	free(uri_dirname);
+
+	return icon;
+}
+
 /*** main ***/
 int main(int argc, char ** argv) {
-	char * album = NULL, * artist = NULL, * notifystr = NULL, * title = NULL;
+	char * album = NULL, * artist = NULL, * icon = NULL, * notifystr = NULL, * title = NULL;
 	GError * error = NULL;
 	unsigned short int errcount = 0, state = MPD_STATE_UNKNOWN;
-	const char * mpd_host = MPD_HOST;
+	const char * mpd_host = MPD_HOST, * music_dir = NULL, * uri = NULL;;
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT;
 	struct mpd_connection * conn = NULL;
 	struct mpd_song * song = NULL;
 	unsigned int i;
 
 	program = argv[0];
+
+	music_dir = getenv("XDG_MUSIC_DIR");
 
 	printf("%s: %s v%s (compiled: " __DATE__ ", " __TIME__
 #			if DEBUG
@@ -82,11 +125,27 @@ int main(int argc, char ** argv) {
 				mpd_port = atoi(optarg);
 				printf("%s: using port %d\n", program, mpd_port);
 				break;
+			case 'm':
+				music_dir = optarg;
+				printf("%s: using music-dir %s\n", program, music_dir);
+				break;
 			case 'H':
 				mpd_host = optarg;
 				printf("%s: using host %s\n", program, mpd_host);
 				break;
 		}
+
+	/* disable artwork stuff if we are connected to a foreign host */
+	if (mpd_host != NULL)
+		music_dir = NULL;
+
+	/* change directory to music base directory */
+	if (music_dir != NULL) {
+		if (chdir(music_dir) == -1) {
+			fprintf(stderr, "Can not change directory to '%s'.\n", music_dir);
+			music_dir = NULL;
+		}
+	}
 
 	conn = mpd_connection_new(mpd_host, mpd_port, mpd_timeout);
 
@@ -124,6 +183,11 @@ int main(int argc, char ** argv) {
 
 			song = mpd_recv_song(conn);
 
+			uri = mpd_song_get_uri(song);
+
+			if (music_dir != NULL && uri != NULL)
+				icon = get_icon(music_dir, uri);
+
 			if ((title = g_markup_escape_text(mpd_song_get_tag(song, MPD_TAG_TITLE, 0), -1)) == NULL)
 				title = strdup(TEXT_UNKNOWN);
 			if ((artist = g_markup_escape_text(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0), -1)) == NULL)
@@ -150,7 +214,7 @@ int main(int argc, char ** argv) {
 		printf("%s: %s\n", program, notifystr);
 #		endif
 
-		notify_notification_update(notification, TEXT_TOPIC, notifystr, ICON_SOUND);
+		notify_notification_update(notification, TEXT_TOPIC, notifystr, icon ? icon : ICON_SOUND);
 
 		notify_notification_set_timeout(notification, NOTIFICATION_TIMEOUT);
 
@@ -179,6 +243,10 @@ int main(int argc, char ** argv) {
 
 		if (state == MPD_STATE_PLAY)
 			free(notifystr);
+		if (icon != NULL) {
+			free(icon);
+			icon = NULL;
+		}
 		mpd_response_finish(conn);
 	}
 	mpd_connection_free(conn);
