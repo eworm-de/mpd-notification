@@ -57,7 +57,12 @@ char * get_icon(const char * music_dir, const char * uri) {
 	regex_t regex;
 
 	uri_dirname = strdup(uri);
-	*strrchr(uri_dirname, '/') = 0;
+
+	/* cut the dirname or just use "." (string, not char!) for current directory */
+	if (strrchr(uri_dirname, '/') != NULL)
+		*strrchr(uri_dirname, '/') = 0;
+	else
+		strcpy(uri_dirname, ".");
 
 	if ((dir = opendir(uri_dirname)) == NULL) {
 		fprintf(stderr, "%s: Can not read directory '%s': ", program, uri_dirname);
