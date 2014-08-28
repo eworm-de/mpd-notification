@@ -124,7 +124,7 @@ int main(int argc, char ** argv) {
 	while ((i = getopt_long(argc, argv, optstring, options_long, NULL)) != -1) {
 		switch (i) {
 			case 'h':
-				fprintf(stderr, "usage: %s [-h] [-H HOST] [-p PORT]\n", program);
+				fprintf(stderr, "usage: %s [-h] [-H HOST] [-p PORT] [-m MUSIC-DIR] [-v]\n", program);
 				return EXIT_SUCCESS;
 			case 'p':
 				mpd_port = atoi(optarg);
