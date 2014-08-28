@@ -52,3 +52,21 @@ Usage
 
 Just run `mpd-notification` after installation or re-login to desktop
 environment for autostart.
+
+`mpd-notification` accepts some arguments:
+
+* *-h*: show help
+* *-H HOST*: connect to HOST
+* *-m MUSIC-DIR*: use MUSIC-DIR for artwork lookup
+* *-p PORT*: connect to PORT
+* *-v*: verbose output
+
+Artwork
+-------
+
+`mpd` does not provide any information where it finds its music files. To make
+`mpd-notification` display album artwork you need to tell it where to look for
+artwork. You can do that by exporting `XDG_MUSIC_DIR` to your environment or by
+specifying `-m` or `--music-dir` on the command line. The image file containing
+the artwork needs to be place in the same directory as the media file and named
+`cover.jpg`, `cover.png`, `folder.jpg` or `folder.png`.
