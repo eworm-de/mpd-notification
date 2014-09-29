@@ -5,24 +5,7 @@
  * of the GNU General Public License, incorporated herein by reference.
  */
 
-#include <mpd/client.h>
-
-#include <libnotify/notify.h>
-
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-#include <getopt.h>
-#include <regex.h>
-
-#include "config.h"
-#include "version.h"
-
-#define PROGNAME	"mpd-notification"
-
-#define NOTIFICATION_TIMEOUT	10000
+#include "mpd-notification.h"
 
 const static char optstring[] = "hH:m:p:v";
 const static struct option options_long[] = {
