@@ -25,8 +25,6 @@
 
 #define PROGNAME	"mpd-notification"
 
-#define NOTIFICATION_TIMEOUT	10000
-
 /*** received_signal ***/
 void received_signal(int signal);
 
