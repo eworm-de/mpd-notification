@@ -38,14 +38,36 @@ const static struct option options_long[] = {
 /* global variables */
 char *program = NULL;
 NotifyNotification * notification = NULL;
+struct mpd_connection * conn = NULL;
+uint8_t doexit = 0;
+uint8_t verbose = 0;
 
-/*** show_again ***/
-void show_again(int signal) {
+/*** received_signal ***/
+void received_signal(int signal) {
 	GError * error = NULL;
 
-	if (!notify_notification_show(notification, &error)) {
-		g_printerr("%s: Error \"%s\" while trying to show notification again.\n", program, error->message);
-		g_error_free(error);
+	switch (signal) {
+		case SIGINT:
+		case SIGTERM:
+			if (verbose > 0)
+				printf("Received signal %d, preparing exit.\n", signal);
+
+			doexit++;
+			mpd_send_noidle(conn);
+			break;
+
+		case SIGHUP:
+		case SIGUSR1:
+			if (verbose > 0)
+				printf("Showing last notification again.\n");
+
+			if (!notify_notification_show(notification, &error)) {
+				g_printerr("%s: Error \"%s\" while trying to show notification again.\n", program, error->message);
+				g_error_free(error);
+			}
+			break;
+		default:
+			fprintf(stderr, "Reveived signal %d, no idea what to do...\n", signal);
 	}
 }
 
@@ -100,10 +122,8 @@ int main(int argc, char ** argv) {
 	unsigned short int errcount = 0, state = MPD_STATE_UNKNOWN;
 	const char * mpd_host = MPD_HOST, * music_dir = NULL, * uri = NULL;;
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT;
-	struct mpd_connection * conn = NULL;
 	struct mpd_song * song = NULL;
 	unsigned int i;
-	uint8_t verbose = 0;
 
 	program = argv[0];
 
@@ -183,9 +203,12 @@ int main(int argc, char ** argv) {
 	notify_notification_set_category(notification, PROGNAME);
 	notify_notification_set_urgency (notification, NOTIFY_URGENCY_NORMAL);
 
-	signal(SIGUSR1, show_again);
+	signal(SIGHUP, received_signal);
+	signal(SIGINT, received_signal);
+	signal(SIGTERM, received_signal);
+	signal(SIGUSR1, received_signal);
 
-	while(mpd_run_idle_mask(conn, MPD_IDLE_PLAYER)) {
+	while(doexit == 0 && mpd_run_idle_mask(conn, MPD_IDLE_PLAYER)) {
 		mpd_command_list_begin(conn, true);
 		mpd_send_status(conn);
 		mpd_send_current_song(conn);
@@ -265,6 +288,10 @@ int main(int argc, char ** argv) {
 		}
 		mpd_response_finish(conn);
 	}
+
+	if (verbose > 0)
+		printf("Exiting...\n");
+
 	mpd_connection_free(conn);
 
 	g_object_unref(G_OBJECT(notification));
