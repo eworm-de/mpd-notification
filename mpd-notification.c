@@ -33,7 +33,7 @@ void received_signal(int signal) {
 		case SIGINT:
 		case SIGTERM:
 			if (verbose > 0)
-				printf("Received signal %d, preparing exit.\n", signal);
+				printf("Received signal %s, preparing exit.\n", strsignal(signal));
 
 			doexit++;
 			mpd_send_noidle(conn);
@@ -42,7 +42,7 @@ void received_signal(int signal) {
 		case SIGHUP:
 		case SIGUSR1:
 			if (verbose > 0)
-				printf("Showing last notification again.\n");
+				printf("Received signal %s, showing last notification again.\n", strsignal(signal));
 
 			if (!notify_notification_show(notification, &error)) {
 				g_printerr("%s: Error \"%s\" while trying to show notification again.\n", program, error->message);
@@ -50,7 +50,7 @@ void received_signal(int signal) {
 			}
 			break;
 		default:
-			fprintf(stderr, "Reveived signal %d, no idea what to do...\n", signal);
+			fprintf(stderr, "Reveived signal %s (%d), no idea what to do...\n", strsignal(signal), signal);
 	}
 }
 
