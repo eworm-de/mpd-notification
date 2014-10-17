@@ -8,6 +8,8 @@
 #ifndef MPD_NOTIFICATION_H
 #define MPD_NOTIFICATION_H
 
+#define _GNU_SOURCE
+
 #include <mpd/client.h>
 
 #include <libnotify/notify.h>

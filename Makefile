@@ -1,6 +1,6 @@
 # mpd-notification - Notify about tracks played by mpd
 
-CC	:= gcc
+CC	:= gcc -std=c11
 MD	:= markdown
 INSTALL	:= install
 CP	:= cp
