@@ -44,7 +44,7 @@ void received_signal(int signal) {
 			if (verbose > 0)
 				printf("Received signal %s, showing last notification again.\n", strsignal(signal));
 
-			if (!notify_notification_show(notification, &error)) {
+			if (notify_notification_show(notification, &error) == FALSE) {
 				g_printerr("%s: Error \"%s\" while trying to show notification again.\n", program, error->message);
 				g_error_free(error);
 			}
@@ -172,7 +172,7 @@ int main(int argc, char ** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	if(!notify_init(PROGNAME)) {
+	if(notify_init(PROGNAME) == FALSE) {
 		fprintf(stderr, "%s: Can't create notify.\n", program);
 		exit(EXIT_FAILURE);
 	}
@@ -240,7 +240,7 @@ int main(int argc, char ** argv) {
 
 		notify_notification_set_timeout(notification, NOTIFICATION_TIMEOUT);
 
-		while(!notify_notification_show(notification, &error)) {
+		while(notify_notification_show(notification, &error) == FALSE) {
 			if (errcount > 1) {
 				fprintf(stderr, "%s: Looks like we can not reconnect to notification daemon... Exiting.\n", program);
 				exit(EXIT_FAILURE);
@@ -255,7 +255,7 @@ int main(int argc, char ** argv) {
 
 				usleep(500 * 1000);
 
-				if(!notify_init(PROGNAME)) {
+				if(notify_init(PROGNAME) == FALSE) {
 					fprintf(stderr, "%s: Can't create notify.\n", program);
 					exit(EXIT_FAILURE);
 				}
