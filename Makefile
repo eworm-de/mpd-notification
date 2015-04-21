@@ -11,7 +11,7 @@ CFLAGS	+= $(shell pkg-config --cflags --libs libnotify)
 CFLAGS	+= $(shell pkg-config --cflags --libs libavcodec libavformat)
 # this is just a fallback in case you do not use git but downloaded
 # a release tarball...
-VERSION := 0.5.2
+VERSION := 0.6.0
 
 all: mpd-notification README.html
 
