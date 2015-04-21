@@ -14,6 +14,9 @@
 
 #include <libnotify/notify.h>
 
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -29,6 +32,9 @@
 
 /*** received_signal ***/
 void received_signal(int signal);
+
+/*** retrieve_album_art ***/
+char * retrieve_album_art(const char *path);
 
 /*** get_icon ***/
 char * get_icon(const char * music_dir, const char * uri);

@@ -8,6 +8,7 @@ RM	:= rm
 CFLAGS	+= -std=c11 -O2 -Wall -Werror
 CFLAGS	+= $(shell pkg-config --cflags --libs libmpdclient)
 CFLAGS	+= $(shell pkg-config --cflags --libs libnotify)
+CFLAGS	+= $(shell pkg-config --cflags --libs libavcodec libavformat)
 # this is just a fallback in case you do not use git but downloaded
 # a release tarball...
 VERSION := 0.5.2

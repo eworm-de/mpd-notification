@@ -54,12 +54,70 @@ void received_signal(int signal) {
 	}
 }
 
+/*** retrieve_album_art ***/
+char * retrieve_album_art(const char *path) {
+	int i, ret = 0;
+	FILE * album_art;
+	char * album_art_file = NULL;
+	AVPacket pkt;
+	AVFormatContext * pFormatCtx = NULL;
+
+	album_art_file = malloc(strlen(PROGNAME) + 15);
+	sprintf(album_art_file, "/tmp/.%s-%d", PROGNAME, getpid());
+
+	pFormatCtx = avformat_alloc_context();
+
+	if (avformat_open_input(&pFormatCtx, path, NULL, NULL) != 0) {
+		printf("avformat_open_input() failed");
+		goto fail;
+	}
+
+	/* only mp3 file contain artwork, so ignore others */
+	if (strcmp(pFormatCtx->iformat->name, "mp3") != 0)
+		goto fail;
+
+	if (pFormatCtx->iformat->read_header(pFormatCtx) < 0) {
+		printf("could not read the format header\n");
+		goto fail;
+	}
+
+	/* find the first attached picture, if available */
+	for (i = 0; i < pFormatCtx->nb_streams; i++) {
+		if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
+			pkt = pFormatCtx->streams[i]->attached_pic;
+			album_art = fopen(album_art_file, "wb");
+			ret = fwrite(pkt.data, pkt.size, 1, album_art);
+			fclose(album_art);
+			break;
+		}
+	}
+
+fail:
+	if (pFormatCtx)
+		avformat_free_context(pFormatCtx);
+
+	if (ret) {
+		return album_art_file;
+	} else {
+		free(album_art_file);
+		return NULL;
+	}
+}
+
 /*** get_icon ***/
 char * get_icon(const char * music_dir, const char * uri) {
-	char * icon = NULL, * uri_dirname;
+	char * icon = NULL, * uri_path = NULL, * uri_dirname = NULL;
 	DIR * dir;
 	struct dirent * entry;
 	regex_t regex;
+
+	/* try album artwork first */
+	uri_path = malloc(strlen(music_dir) + strlen(uri) + 2);
+	sprintf(uri_path, "%s/%s", music_dir, uri);
+	icon = retrieve_album_art(uri_path);
+
+	if (icon != NULL)
+		goto found;
 
 	uri_dirname = strdup(uri);
 
@@ -93,7 +151,11 @@ char * get_icon(const char * music_dir, const char * uri) {
 	regfree(&regex);
 	closedir(dir);
 
-	free(uri_dirname);
+found:
+	if (uri_path)
+		free(uri_path);
+	if (uri_dirname)
+		free(uri_dirname);
 
 	return icon;
 }
@@ -163,6 +225,9 @@ int main(int argc, char ** argv) {
 			music_dir = NULL;
 		}
 	}
+
+	/* libav */
+	av_register_all();
 
 	conn = mpd_connection_new(mpd_host, mpd_port, mpd_timeout);
 
