@@ -7,13 +7,14 @@
 
 #include "mpd-notification.h"
 
-const static char optstring[] = "hH:m:p:v";
+const static char optstring[] = "hH:m:p:t:v";
 const static struct option options_long[] = {
 	/* name		has_arg			flag	val */
 	{ "help",	no_argument,		NULL,	'h' },
 	{ "host",	required_argument,	NULL,	'H' },
 	{ "music-dir",	required_argument,	NULL,	'm' },
 	{ "port",	required_argument,	NULL,	'p' },
+	{ "notification-timeout",	required_argument,	NULL,	't' },
 	{ "verbose",	no_argument,		NULL,	'v' },
 	{ 0, 0, 0, 0 }
 };
@@ -165,8 +166,8 @@ int main(int argc, char ** argv) {
 	char * album = NULL, * artist = NULL, * icon = NULL, * notifystr = NULL, * title = NULL;
 	GError * error = NULL;
 	unsigned short int errcount = 0, state = MPD_STATE_UNKNOWN;
-	const char * mpd_host = MPD_HOST, * music_dir = NULL, * uri = NULL;;
-	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT;
+	const char * mpd_host = MPD_HOST, * music_dir = NULL, * uri = NULL;
+	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
 	struct mpd_song * song = NULL;
 	unsigned int i;
 
@@ -194,7 +195,7 @@ int main(int argc, char ** argv) {
 	while ((i = getopt_long(argc, argv, optstring, options_long, NULL)) != -1) {
 		switch (i) {
 			case 'h':
-				fprintf(stderr, "usage: %s [-h] [-H HOST] [-p PORT] [-m MUSIC-DIR] [-v]\n", program);
+				fprintf(stderr, "usage: %s [-h] [-H HOST] [-p PORT] [-m MUSIC-DIR] [-t NOTIFICATION-TIMEOUT] [-v]\n", program);
 				return EXIT_SUCCESS;
 			case 'p':
 				mpd_port = atoi(optarg);
@@ -210,6 +211,11 @@ int main(int argc, char ** argv) {
 				mpd_host = optarg;
 				if (verbose > 0)
 					printf("%s: using host %s\n", program, mpd_host);
+				break;
+			case 't':
+				notification_timeout = atof(optarg) * 1000;
+				if (verbose > 0)
+					printf("%s: using notification-timeout %d\n", program, notification_timeout);
 				break;
 		}
 	}
@@ -303,7 +309,7 @@ int main(int argc, char ** argv) {
 
 		notify_notification_update(notification, TEXT_TOPIC, notifystr, icon ? icon : ICON_SOUND);
 
-		notify_notification_set_timeout(notification, NOTIFICATION_TIMEOUT);
+		notify_notification_set_timeout(notification, notification_timeout);
 
 		while(notify_notification_show(notification, &error) == FALSE) {
 			if (errcount > 1) {
