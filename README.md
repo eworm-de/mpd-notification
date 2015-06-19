@@ -60,6 +60,7 @@ environment for autostart.
 * *-H HOST*: connect to HOST
 * *-m MUSIC-DIR*: use MUSIC-DIR for artwork lookup
 * *-p PORT*: connect to PORT
+* *-p TIMEOUT*: notification timeout
 * *-v*: verbose output
 
 Artwork
