@@ -14,8 +14,10 @@
 
 #include <libnotify/notify.h>
 
+#ifdef HAVE_LIBAV
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#endif
 
 #include <stdio.h>
 #include <unistd.h>

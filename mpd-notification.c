@@ -56,6 +56,7 @@ void received_signal(int signal) {
 	}
 }
 
+#ifdef HAVE_LIBAV
 /*** retrieve_album_art ***/
 char * retrieve_album_art(const char *path) {
 	int i, ret = 0;
@@ -105,13 +106,17 @@ fail:
 		return NULL;
 	}
 }
+#endif
 
 /*** get_icon ***/
 char * get_icon(const char * music_dir, const char * uri) {
-	char * icon = NULL, * uri_path = NULL, * uri_dirname = NULL;
+	char * icon = NULL, * uri_dirname = NULL;
 	DIR * dir;
 	struct dirent * entry;
 	regex_t regex;
+
+#ifdef HAVE_LIBAV
+	char * uri_path = NULL;
 
 	/* try album artwork first */
 	uri_path = malloc(strlen(music_dir) + strlen(uri) + 2);
@@ -120,6 +125,7 @@ char * get_icon(const char * music_dir, const char * uri) {
 
 	if (icon != NULL)
 		goto found;
+#endif
 
 	uri_dirname = strdup(uri);
 
@@ -153,9 +159,12 @@ char * get_icon(const char * music_dir, const char * uri) {
 	regfree(&regex);
 	closedir(dir);
 
+#ifdef HAVE_LIBAV
 found:
 	if (uri_path)
 		free(uri_path);
+#endif
+
 	if (uri_dirname)
 		free(uri_dirname);
 
@@ -243,8 +252,10 @@ int main(int argc, char ** argv) {
 		}
 	}
 
+#ifdef HAVE_LIBAV
 	/* libav */
 	av_register_all();
+#endif
 
 	conn = mpd_connection_new(mpd_host, mpd_port, mpd_timeout);
 
