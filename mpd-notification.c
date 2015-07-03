@@ -7,7 +7,7 @@
 
 #include "mpd-notification.h"
 
-const static char optstring[] = "hH:m:p:t:v";
+const static char optstring[] = "hH:m:p:t:vV";
 const static struct option options_long[] = {
 	/* name		has_arg			flag	val */
 	{ "help",	no_argument,		NULL,	'h' },
@@ -16,6 +16,7 @@ const static struct option options_long[] = {
 	{ "port",	required_argument,	NULL,	'p' },
 	{ "timeout",	required_argument,	NULL,	't' },
 	{ "verbose",	no_argument,		NULL,	'v' },
+	{ "version",	no_argument,		NULL,	'V' },
 	{ 0, 0, 0, 0 }
 };
 
@@ -169,7 +170,7 @@ int main(int argc, char ** argv) {
 	const char * mpd_host = MPD_HOST, * music_dir = NULL, * uri = NULL;
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
 	struct mpd_song * song = NULL;
-	unsigned int i;
+	unsigned int i, version = 0, help = 0;
 
 	program = argv[0];
 
@@ -178,8 +179,15 @@ int main(int argc, char ** argv) {
 	/* get the verbose status */
 	while ((i = getopt_long(argc, argv, optstring, options_long, NULL)) != -1) {
 		switch (i) {
+			case 'h':
+				help++;
+				break;
 			case 'v':
 				verbose++;
+				break;
+			case 'V':
+				verbose++;
+				version++;
 				break;
 		}
 	}
@@ -191,12 +199,15 @@ int main(int argc, char ** argv) {
 	if (verbose > 0)
 		printf("%s: %s v%s (compiled: " __DATE__ ", " __TIME__ ")\n", program, PROGNAME, VERSION);
 
+	if (help > 0)
+		fprintf(stderr, "usage: %s [-h] [-H HOST] [-p PORT] [-m MUSIC-DIR] [-t TIMEOUT] [-v] [-V]\n", program);
+
+	if (version > 0 || help > 0)
+		return EXIT_SUCCESS;
+
 	/* get command line options */
 	while ((i = getopt_long(argc, argv, optstring, options_long, NULL)) != -1) {
 		switch (i) {
-			case 'h':
-				fprintf(stderr, "usage: %s [-h] [-H HOST] [-p PORT] [-m MUSIC-DIR] [-t TIMEOUT] [-v]\n", program);
-				return EXIT_SUCCESS;
 			case 'p':
 				mpd_port = atoi(optarg);
 				if (verbose > 0)
