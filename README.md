@@ -74,3 +74,8 @@ specifying `-m` or `--music-dir` on the command line. `mpd-notification` reads
 album artwork from `mp3` files, otherwise an image file containing the artwork
 needs to be placed in the same directory as the media file and named
 `cover.jpg`, `cover.png`, `folder.jpg` or `folder.png`.
+
+### Upstream
+
+URL: [GitHub.com](https://github.com/eworm-de/mpd-notification)  
+Mirror: [eworm.de](http://git.eworm.de/cgit.cgi/mpd-notification/)
