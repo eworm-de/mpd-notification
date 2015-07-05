@@ -12,7 +12,7 @@
 #define NOTIFICATION_TIMEOUT	10000
 
 /* name of the icon used for notifications */
-#define ICON_SOUND	"sound"
+#define ICON_SOUND	"audio-x-generic"
 
 /* strings used to display notification messages
  * TEXT_PLAY needs to include three '%s', in order:
