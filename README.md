@@ -24,7 +24,7 @@ To compile and run `mpd-notification` you need:
 * [libnotify](http://library.gnome.org/devel/notification-spec/)
 * [libmpdclient](http://www.musicpd.org/libs/libmpdclient/)
 * [markdown](http://daringfireball.net/projects/markdown/) (HTML documentation)
-* `gnome-icon-theme` (or anything else that includes an icon named `sound`)
+* `gnome-icon-theme` (or anything else that includes an icon named `audio-x-generic`)
 
 To use `mpd-notification` you probably want `mpd`, the
 [music player daemon](http://www.musicpd.org/) itself. ;)
@@ -62,6 +62,7 @@ environment for autostart.
 * *-p PORT*: connect to PORT
 * *-t TIMEOUT*: notification timeout
 * *-v*: verbose output
+* *-V*: print version information
 
 Artwork
 -------
