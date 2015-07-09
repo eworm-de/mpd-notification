@@ -35,7 +35,9 @@
 void received_signal(int signal);
 
 /*** retrieve_album_art ***/
-char * retrieve_album_art(const char *path);
+#ifdef HAVE_LIBAV
+GdkPixbuf * retrieve_album_art(const char * music_dir, const char * uri);
+#endif
 
 /*** get_icon ***/
 char * get_icon(const char * music_dir, const char * uri);
