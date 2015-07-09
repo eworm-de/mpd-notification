@@ -259,7 +259,8 @@ int main(int argc, char ** argv) {
 	av_register_all();
 
 	/* only fatal messages from libav */
-	av_log_set_level(AV_LOG_FATAL);
+	if (verbose == 0)
+		av_log_set_level(AV_LOG_FATAL);
 #endif
 
 	conn = mpd_connection_new(mpd_host, mpd_port, mpd_timeout);
