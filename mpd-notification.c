@@ -277,9 +277,9 @@ int main(int argc, char ** argv) {
 
 	notification =
 #		if NOTIFY_CHECK_VERSION(0, 7, 0)
-		notify_notification_new(TEXT_TOPIC, TEXT_NONE, ICON_SOUND);
+		notify_notification_new(TEXT_TOPIC, TEXT_NONE, ICON_AUDIO_X_GENERIC);
 #		else
-		notify_notification_new(TEXT_TOPIC, TEXT_NONE, ICON_SOUND, NULL);
+		notify_notification_new(TEXT_TOPIC, TEXT_NONE, ICON_AUDIO_X_GENERIC, NULL);
 #		endif
 	notify_notification_set_category(notification, PROGNAME);
 	notify_notification_set_urgency (notification, NOTIFY_URGENCY_NORMAL);
@@ -343,7 +343,7 @@ int main(int argc, char ** argv) {
 		if (verbose > 0)
 			printf("%s: %s\n", program, notifystr);
 
-		notify_notification_update(notification, TEXT_TOPIC, notifystr, icon ? icon : ICON_SOUND);
+		notify_notification_update(notification, TEXT_TOPIC, notifystr, icon ? icon : ICON_AUDIO_X_GENERIC);
 
 		if (pixbuf != NULL)
 			notify_notification_set_image_from_pixbuf(notification, pixbuf);
