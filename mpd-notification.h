@@ -40,6 +40,9 @@ char * retrieve_album_art(const char *path);
 /*** get_icon ***/
 char * get_icon(const char * music_dir, const char * uri);
 
+/*** append_string ***/
+char * append_string(char * string, const char * format, const char * s);
+
 /*** main ***/
 int main(int argc, char ** argv);
 

@@ -17,12 +17,14 @@
 /* strings used to display notification messages
  * TEXT_PLAY needs to include three '%s', in order:
  * title, artist, album */
-#define TEXT_TOPIC	"MPD Notification"
-#define TEXT_PLAY	"Playing <b>%s</b>\nby <i>%s</i>\nfrom <i>%s</i>"
-#define TEXT_PAUSE	"Paused playback"
-#define TEXT_STOP	"Stopped playback"
-#define TEXT_NONE	"No action received yet."
-#define TEXT_UNKNOWN	"(unknown)"
+#define TEXT_TOPIC		"MPD Notification"
+#define TEXT_PLAY_TITLE		"Playing <b>%s</b>"
+#define TEXT_PLAY_ARTIST	"\nby <i>%s</i>"
+#define TEXT_PLAY_ALBUM		"\nfrom <i>%s</i>"
+#define TEXT_PAUSE		"Paused playback"
+#define TEXT_STOP		"Stopped playback"
+#define TEXT_NONE		"No action received yet."
+#define TEXT_UNKNOWN		"(unknown)"
 
 /* this is a regular expression that has to match image filename used
  * for artwork */

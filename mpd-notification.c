@@ -171,9 +171,25 @@ found:
 	return icon;
 }
 
+/*** append_string ***/
+char * append_string(char * string, const char * format, const char * s) {
+	char * tmp;
+
+	tmp = g_markup_escape_text(s, -1);
+
+	string = realloc(string, strlen(string) + strlen(format) + strlen(tmp));
+
+	sprintf(string + strlen(string), format, tmp);
+
+	free(tmp);
+
+	return string;
+}
+
 /*** main ***/
 int main(int argc, char ** argv) {
-	char * album = NULL, * artist = NULL, * icon = NULL, * notifystr = NULL, * title = NULL;
+	const char * title = NULL, * artist = NULL, * album = NULL;
+	char * icon = NULL, * notifystr = NULL;
 	GError * error = NULL;
 	unsigned short int errcount = 0, state = MPD_STATE_UNKNOWN;
 	const char * mpd_host = MPD_HOST, * music_dir = NULL, * uri = NULL;
@@ -296,6 +312,23 @@ int main(int argc, char ** argv) {
 
 			song = mpd_recv_song(conn);
 
+			title = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
+
+			/* ignore if we have no title */
+			if (title == NULL)
+				continue;
+
+			/* initial allocation and string termination */
+			notifystr = strdup("");
+
+			notifystr = append_string(notifystr, TEXT_PLAY_TITLE, title);
+
+			if ((artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)) != NULL)
+				notifystr = append_string(notifystr, TEXT_PLAY_ARTIST, artist);
+
+			if ((album = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)) != NULL)
+				notifystr = append_string(notifystr, TEXT_PLAY_ALBUM, album);
+
 			uri = mpd_song_get_uri(song);
 
 			if (music_dir != NULL && uri != NULL)
@@ -303,20 +336,6 @@ int main(int argc, char ** argv) {
 
 			if (verbose > 0 && icon != NULL)
 				printf("%s: found icon: %s\n", program, icon);
-
-			if ((title = g_markup_escape_text(mpd_song_get_tag(song, MPD_TAG_TITLE, 0), -1)) == NULL)
-				title = strdup(TEXT_UNKNOWN);
-			if ((artist = g_markup_escape_text(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0), -1)) == NULL)
-				artist = strdup(TEXT_UNKNOWN);
-			if ((album = g_markup_escape_text(mpd_song_get_tag(song, MPD_TAG_ALBUM, 0), -1)) == NULL)
-				album = strdup(TEXT_UNKNOWN);
-
-			notifystr = malloc(sizeof(TEXT_PLAY) + strlen(title) + strlen(artist) + strlen(album));
-			sprintf(notifystr, TEXT_PLAY, title, artist, album);
-
-			free(title);
-			free(artist);
-			free(album);
 
 			mpd_song_free(song);
 		} else if (state == MPD_STATE_PAUSE)
@@ -356,8 +375,10 @@ int main(int argc, char ** argv) {
 		}
 		errcount = 0;
 
-		if (state == MPD_STATE_PLAY)
+		if (notifystr != NULL) {
 			free(notifystr);
+			notifystr = NULL;
+		}
 		if (icon != NULL) {
 			free(icon);
 			icon = NULL;
