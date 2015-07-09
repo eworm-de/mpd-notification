@@ -324,6 +324,9 @@ int main(int argc, char ** argv) {
 #ifdef HAVE_LIBAV
 				pixbuf = retrieve_album_art(music_dir, uri);
 
+				if (verbose > 0 && pixbuf != NULL)
+					printf("%s: found artwork in media file: %s/%s\n", program, music_dir, uri);
+
 				if (pixbuf == NULL)
 #endif
 					icon = get_icon(music_dir, uri);
