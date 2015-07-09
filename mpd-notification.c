@@ -330,10 +330,10 @@ int main(int argc, char ** argv) {
 				if (pixbuf == NULL)
 #endif
 					icon = get_icon(music_dir, uri);
-			}
 
-			if (verbose > 0 && icon != NULL)
-				printf("%s: found icon: %s\n", program, icon);
+				if (verbose > 0 && icon != NULL)
+					printf("%s: found icon: %s\n", program, icon);
+			}
 
 			mpd_song_free(song);
 		} else if (state == MPD_STATE_PAUSE)
