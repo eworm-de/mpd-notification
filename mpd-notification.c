@@ -347,7 +347,13 @@ int main(int argc, char ** argv) {
 		if (verbose > 0)
 			printf("%s: %s\n", program, notifystr);
 
-		notify_notification_update(notification, TEXT_TOPIC, notifystr, icon ? icon : ICON_AUDIO_X_GENERIC);
+		/* What combinations do we have?
+		 *   icon  pixbuf (impossible, icon is set only when !pixbuf)
+		 *  !icon  pixbuf -> icon -> NULL (use pixbuf)
+		 *  !icon !pixbuf -> ICON_AUDIO_X_GENERIC
+		 *   icon !pixbuf -> icon */
+		notify_notification_update(notification, TEXT_TOPIC, notifystr,
+				icon == NULL && pixbuf == NULL ? ICON_AUDIO_X_GENERIC : icon);
 
 		if (pixbuf != NULL)
 			notify_notification_set_image_from_pixbuf(notification, pixbuf);
