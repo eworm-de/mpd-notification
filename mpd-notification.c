@@ -334,11 +334,11 @@ int main(int argc, char ** argv) {
 
 			mpd_song_free(song);
 		} else if (state == MPD_STATE_PAUSE)
-			notifystr = TEXT_PAUSE;
+			notifystr = strdup(TEXT_PAUSE);
 		else if (state == MPD_STATE_STOP)
-			notifystr = TEXT_STOP;
+			notifystr = strdup(TEXT_STOP);
 		else
-			notifystr = TEXT_UNKNOWN;
+			notifystr = strdup(TEXT_UNKNOWN);
 
 		if (verbose > 0)
 			printf("%s: %s\n", program, notifystr);
