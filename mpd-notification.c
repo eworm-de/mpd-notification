@@ -61,7 +61,7 @@ void received_signal(int signal) {
 GdkPixbuf * retrieve_album_art(const char * music_dir, const char * uri) {
 	int i;
 	AVPacket pkt;
-	AVFormatContext * pFormatCtx = NULL;
+	AVFormatContext * pFormatCtx;
 	GdkPixbufLoader * loader;
 	GdkPixbuf * pixbuf = NULL;
 	char * uri_path = NULL;
@@ -101,11 +101,11 @@ GdkPixbuf * retrieve_album_art(const char * music_dir, const char * uri) {
 	}
 
 fail:
+	avformat_close_input(&pFormatCtx);
+	avformat_free_context(pFormatCtx);
+
 	if (uri_path)
 		free(uri_path);
-
-	if (pFormatCtx)
-		avformat_free_context(pFormatCtx);
 
 	return pixbuf;
 }
