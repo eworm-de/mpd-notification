@@ -41,8 +41,8 @@ install-bin: mpd-notification
 install-doc: README.html
 	$(INSTALL) -D -m0644 README.md $(DESTDIR)/usr/share/doc/mpd-notification/README.md
 	$(INSTALL) -D -m0644 README.html $(DESTDIR)/usr/share/doc/mpd-notification/README.html
-	$(INSTALL) -D -m0644 screenshot-sound.png $(DESTDIR)/usr/share/doc/mpd-notification/screenshot-sound.png
-	$(INSTALL) -D -m0644 screenshot-artwork.png $(DESTDIR)/usr/share/doc/mpd-notification/screenshot-artwork.png
+	$(INSTALL) -D -m0644 screenshots/sound.png $(DESTDIR)/usr/share/doc/mpd-notification/screenshots/sound.png
+	$(INSTALL) -D -m0644 screenshots/artwork.png $(DESTDIR)/usr/share/doc/mpd-notification/screenshots/artwork.png
 
 clean:
 	$(RM) -f *.o *~ README.html mpd-notification version.h

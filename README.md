@@ -7,11 +7,11 @@ This runs in background and produces notifications whenever mpd produces
 an event, that is new track is played or playback is paused or stopped.
 Notifications look like this:
 
-![Notification](screenshot-sound.png)
+![Notification](screenshots/sound.png)
 
 This now even supports album artwork:
 
-![Notification with Artwork](screenshot-artwork.png)
+![Notification with Artwork](screenshots/artwork.png)
 
 Read below for the details.
 
