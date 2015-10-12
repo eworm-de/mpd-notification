@@ -36,7 +36,7 @@ install: install-bin install-doc
 
 install-bin: mpd-notification
 	$(INSTALL) -D -m0755 mpd-notification $(DESTDIR)/usr/bin/mpd-notification
-	$(INSTALL) -D -m0644 mpd-notification.desktop $(DESTDIR)/etc/xdg/autostart/mpd-notification.desktop
+	$(INSTALL) -D -m0644 systemd/mpd-notification.service $(DESTDIR)/usr/lib/systemd/user/mpd-notification.service
 
 install-doc: README.html
 	$(INSTALL) -D -m0644 README.md $(DESTDIR)/usr/share/doc/mpd-notification/README.md

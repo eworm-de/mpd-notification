@@ -45,14 +45,14 @@ followed by:
 
 This will place an executable at `/usr/bin/mpd-notification`,
 documentation can be found in `/usr/share/doc/mpd-notification/`.
-Additionally a desktop file is installed to `/etc/xdg/autostart/`, this
-automatically starts the program when logged in to a desktop environment.
+Additionally a systemd unit file is installed to `/usr/lib/systemd/user/`.
 
 Usage
 -----
 
-Just run `mpd-notification` after installation or re-login to desktop
-environment for autostart.
+Just run `mpd-notification` to run it once. A systemd user service can be
+started and/or enabled with `systemctl --user start mpd-notification`
+or `systemctl --user enable mpd-notification`.
 
 `mpd-notification` accepts some arguments:
 

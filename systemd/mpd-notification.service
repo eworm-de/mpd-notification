@@ -1,0 +1,9 @@
+[Unit]
+Description=MPD Notification
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/mpd-notification
+
+[Install]
+WantedBy=default.target

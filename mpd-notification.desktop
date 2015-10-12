@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=MPD Notification
-Icon=sound
-Exec=/usr/bin/mpd-notification
-Terminal=false
-Type=Application
-StartupNotify=false
-Categories=Utility
