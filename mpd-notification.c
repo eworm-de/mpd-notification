@@ -306,7 +306,7 @@ int main(int argc, char ** argv) {
 
 			/* ignore if we have no title */
 			if (title == NULL)
-				continue;
+				goto nonotification;
 
 			/* initial allocation and string termination */
 			notifystr = strdup("");
@@ -383,6 +383,7 @@ int main(int argc, char ** argv) {
 		}
 		errcount = 0;
 
+nonotification:
 		if (notifystr != NULL) {
 			free(notifystr);
 			notifystr = NULL;
