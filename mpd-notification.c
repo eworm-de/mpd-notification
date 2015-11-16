@@ -178,12 +178,20 @@ int main(int argc, char ** argv) {
 	GdkPixbuf * pixbuf = NULL;
 	GError * error = NULL;
 	unsigned short int errcount = 0, state = MPD_STATE_UNKNOWN;
-	const char * mpd_host = MPD_HOST, * music_dir = NULL, * uri = NULL;
+	const char * mpd_host, * mpd_port_str, * music_dir, * uri = NULL;
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
 	struct mpd_song * song = NULL;
 	unsigned int i, version = 0, help = 0;
 
 	program = argv[0];
+
+	if ((mpd_host = getenv("MPD_HOST")) == NULL)
+		mpd_host = MPD_HOST;
+
+	if ((mpd_port_str = getenv("MPD_PORT")) == NULL)
+		mpd_port = MPD_PORT;
+	else
+		mpd_port = atoi(mpd_port_str);
 
 	music_dir = getenv("XDG_MUSIC_DIR");
 
