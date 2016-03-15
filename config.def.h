@@ -15,8 +15,7 @@
 #define ICON_AUDIO_X_GENERIC	"audio-x-generic"
 
 /* strings used to display notification messages
- * TEXT_PLAY needs to include three '%s', in order:
- * title, artist, album */
+ * TEXT_PLAY_* need to include one string modifier '%s' each. */
 #define TEXT_TOPIC		"MPD Notification"
 #define TEXT_PLAY_TITLE		"Playing <b>%s</b>"
 #define TEXT_PLAY_ARTIST	"\nby <i>%s</i>"
