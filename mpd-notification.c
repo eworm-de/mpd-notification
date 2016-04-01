@@ -7,12 +7,13 @@
 
 #include "mpd-notification.h"
 
-const static char optstring[] = "hH:m:p:t:vV";
+const static char optstring[] = "hH:m:op:t:vV";
 const static struct option options_long[] = {
 	/* name		has_arg			flag	val */
 	{ "help",	no_argument,		NULL,	'h' },
 	{ "host",	required_argument,	NULL,	'H' },
 	{ "music-dir",	required_argument,	NULL,	'm' },
+	{ "oneline",	no_argument,		NULL,	'o' },
 	{ "port",	required_argument,	NULL,	'p' },
 	{ "timeout",	required_argument,	NULL,	't' },
 	{ "verbose",	no_argument,		NULL,	'v' },
@@ -26,6 +27,7 @@ NotifyNotification * notification = NULL;
 struct mpd_connection * conn = NULL;
 uint8_t doexit = 0;
 uint8_t verbose = 0;
+uint8_t oneline = 0;
 
 /*** received_signal ***/
 void received_signal(int signal) {
@@ -157,14 +159,21 @@ char * get_icon(const char * music_dir, const char * uri) {
 }
 
 /*** append_string ***/
-char * append_string(char * string, const char * format, const char * s) {
-	char * tmp;
+char * append_string(char * string, const char * format, const char delim, const char * s) {
+	char * tmp, * offset;
 
 	tmp = g_markup_escape_text(s, -1);
 
-	string = realloc(string, strlen(string) + strlen(format) + strlen(tmp));
+	string = realloc(string, strlen(string) + strlen(format) + strlen(tmp) + 2 /* delim + line break */);
 
-	sprintf(string + strlen(string), format, tmp);
+	offset = string + strlen(string);
+
+	if (delim > 0) {
+		*offset = delim;
+		offset++;
+	}
+
+	sprintf(offset, format, tmp);
 
 	free(tmp);
 
@@ -200,6 +209,9 @@ int main(int argc, char ** argv) {
 		switch (i) {
 			case 'h':
 				help++;
+				break;
+			case 'o':
+				oneline++;
 				break;
 			case 'v':
 				verbose++;
@@ -319,13 +331,13 @@ int main(int argc, char ** argv) {
 			/* initial allocation and string termination */
 			notifystr = strdup("");
 
-			notifystr = append_string(notifystr, TEXT_PLAY_TITLE, title);
+			notifystr = append_string(notifystr, TEXT_PLAY_TITLE, 0, title);
 
 			if ((artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)) != NULL)
-				notifystr = append_string(notifystr, TEXT_PLAY_ARTIST, artist);
+				notifystr = append_string(notifystr, TEXT_PLAY_ARTIST, oneline ? ' ' : '\n', artist);
 
 			if ((album = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)) != NULL)
-				notifystr = append_string(notifystr, TEXT_PLAY_ALBUM, album);
+				notifystr = append_string(notifystr, TEXT_PLAY_ALBUM, oneline ? ' ' : '\n', album);
 
 			uri = mpd_song_get_uri(song);
 
