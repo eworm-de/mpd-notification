@@ -1,17 +1,22 @@
 # mpd-notification - Notify about tracks played by mpd
 
+# commands
 CC	:= gcc
 MD	:= markdown
 INSTALL	:= install
 CP	:= cp
 RM	:= rm
-CFLAGS	+= -std=c11 -O2 -Wall -Werror
+
+# flags
+CFLAGS	+= -std=c11 -O2 -fPIC -Wall -Werror
 CFLAGS	+= $(shell pkg-config --cflags --libs libmpdclient)
 CFLAGS	+= $(shell pkg-config --cflags --libs libnotify)
 LIBAV_CFLAGS := $(shell pkg-config --cflags --libs libavformat libavutil 2>/dev/null)
 ifneq ($(LIBAV_CFLAGS),)
 CFLAGS	+= -DHAVE_LIBAV $(LIBAV_CFLAGS)
 endif
+LDFLAGS	+= -Wl,-z,now -Wl,-z,relro -pie
+
 # this is just a fallback in case you do not use git but downloaded
 # a release tarball...
 VERSION := 0.7.3
@@ -19,7 +24,7 @@ VERSION := 0.7.3
 all: mpd-notification README.html
 
 mpd-notification: mpd-notification.c config.h version.h
-	$(CC) $(CFLAGS) -o mpd-notification mpd-notification.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o mpd-notification mpd-notification.c
 
 config.h:
 	$(CP) config.def.h config.h
