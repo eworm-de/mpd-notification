@@ -1,5 +1,6 @@
 [Unit]
 Description=MPD Notification
+Requires=mpd.service
 
 [Service]
 Type=simple
