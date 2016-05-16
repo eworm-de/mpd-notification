@@ -9,6 +9,13 @@ After=mpd.service network.target network-online.target
 
 [Service]
 Type=simple
+# Using mpd user service can result in mpd-notification starting too early
+# as systemd thinks mpd has finished initialization but socket is not yet
+# available. So sleep for a second before starting.
+# TODO: Remove workarount when upstream fix is released. Currently in git:
+# http://git.musicpd.org/cgit/master/mpd.git/commit/?id=7b575f61
+# http://git.musicpd.org/cgit/master/mpd.git/commit/?id=c85ba733
+ExecStartPre=/usr/bin/sleep 1
 ExecStart=/usr/bin/mpd-notification
 
 [Install]
