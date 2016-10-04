@@ -375,8 +375,8 @@ int main(int argc, char ** argv) {
 		notify_notification_update(notification, TEXT_TOPIC, notifystr,
 				icon == NULL && pixbuf == NULL ? ICON_AUDIO_X_GENERIC : icon);
 
-		if (pixbuf != NULL)
-			notify_notification_set_image_from_pixbuf(notification, pixbuf);
+		/* Call this unconditionally! When pixbuf is NULL this clears old image. */
+		notify_notification_set_image_from_pixbuf(notification, pixbuf);
 
 		notify_notification_set_timeout(notification, notification_timeout);
 
