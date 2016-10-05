@@ -345,7 +345,15 @@ int main(int argc, char ** argv) {
 					printf("%s: found artwork in or near media file: %s/%s\n", program, music_dir, uri);
 
 				if (scale > 0) {
-					if ((copy = gdk_pixbuf_scale_simple (pixbuf, scale, scale, GDK_INTERP_BILINEAR)) != NULL) {
+					int x, y;
+
+					x = gdk_pixbuf_get_width(pixbuf);
+					y = gdk_pixbuf_get_height(pixbuf);
+
+					if ((copy = gdk_pixbuf_scale_simple (pixbuf,
+							(x > y ? scale : scale * x / y),
+							(y > x ? scale : scale * y / x),
+							GDK_INTERP_BILINEAR)) != NULL) {
 						g_object_unref(pixbuf);
 						pixbuf = copy;
 					}
