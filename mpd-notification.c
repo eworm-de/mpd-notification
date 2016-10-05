@@ -225,7 +225,7 @@ int main(int argc, char ** argv) {
 		printf("%s: %s v%s (compiled: " __DATE__ ", " __TIME__ ")\n", program, PROGNAME, VERSION);
 
 	if (help > 0)
-		fprintf(stderr, "usage: %s [-h] [-H HOST] [-p PORT] [-m MUSIC-DIR] [-t TIMEOUT] [-v] [-V]\n", program);
+		fprintf(stderr, "usage: %s [-h] [-H HOST] [-p PORT] [-m MUSIC-DIR] [-s PIXELS] [-t TIMEOUT] [-v] [-V]\n", program);
 
 	if (version > 0 || help > 0)
 		return EXIT_SUCCESS;
