@@ -19,6 +19,8 @@ const static struct option options_long[] = {
 	{ "timeout",	required_argument,	NULL,	't' },
 	{ "verbose",	no_argument,		NULL,	'v' },
 	{ "version",	no_argument,		NULL,	'V' },
+	{ "notification-file-workaround",
+			no_argument,		NULL,	OPT_FILE_WORKAROUND },
 	{ 0, 0, 0, 0 }
 };
 
@@ -182,7 +184,7 @@ int main(int argc, char ** argv) {
 	const char * mpd_host, * mpd_port_str, * music_dir, * uri = NULL;
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
 	struct mpd_song * song = NULL;
-	unsigned int i, version = 0, help = 0, scale = 0;
+	unsigned int i, version = 0, help = 0, scale = 0, file_workaround = 0;
 
 	program = argv[0];
 
@@ -253,6 +255,9 @@ int main(int argc, char ** argv) {
 				notification_timeout = atof(optarg) * 1000;
 				if (verbose > 0)
 					printf("%s: using notification-timeout %d\n", program, notification_timeout);
+				break;
+			case OPT_FILE_WORKAROUND:
+				file_workaround++;
 				break;
 		}
 	}
@@ -373,8 +378,14 @@ int main(int argc, char ** argv) {
 		if (verbose > 0)
 			printf("%s: %s\n", program, notifystr);
 
-		notify_notification_update(notification, TEXT_TOPIC, notifystr,
-				ICON_AUDIO_X_GENERIC);
+		/* Some notification daemons do not support handing pixbuf data. Write a PNG
+		 * file and give the path. */
+		if (file_workaround > 0 && pixbuf != NULL) {
+			gdk_pixbuf_save(pixbuf, "/tmp/.mpd-notification-artwork.png", "png", NULL, NULL);
+
+			notify_notification_update(notification, TEXT_TOPIC, notifystr, "/tmp/.mpd-notification-artwork.png");
+		} else
+			notify_notification_update(notification, TEXT_TOPIC, notifystr, ICON_AUDIO_X_GENERIC);
 
 		/* Call this unconditionally! When pixbuf is NULL this clears old image. */
 		notify_notification_set_image_from_pixbuf(notification, pixbuf);
