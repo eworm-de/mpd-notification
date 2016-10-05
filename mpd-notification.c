@@ -58,15 +58,19 @@ void received_signal(int signal) {
 	}
 }
 
+/*** retrieve_artwork ***/
+GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
+	GdkPixbuf * pixbuf = NULL;
+	char * uri_path = NULL, * imagefile = NULL;
+	DIR * dir;
+	struct dirent * entry;
+	regex_t regex;
+
 #ifdef HAVE_LIBAV
-/*** retrieve_artwork_media ***/
-GdkPixbuf * retrieve_artwork_media(const char * music_dir, const char * uri) {
 	int i;
 	AVPacket pkt;
 	AVFormatContext * pFormatCtx;
 	GdkPixbufLoader * loader;
-	GdkPixbuf * pixbuf = NULL;
-	char * uri_path = NULL;
 
 	/* try album artwork first */
 	uri_path = malloc(strlen(music_dir) + strlen(uri) + 2);
@@ -76,16 +80,16 @@ GdkPixbuf * retrieve_artwork_media(const char * music_dir, const char * uri) {
 
 	if (avformat_open_input(&pFormatCtx, uri_path, NULL, NULL) != 0) {
 		printf("avformat_open_input() failed");
-		goto fail;
+		goto image;
 	}
 
 	/* only mp3 file contain artwork, so ignore others */
 	if (strcmp(pFormatCtx->iformat->name, "mp3") != 0)
-		goto fail;
+		goto image;
 
 	if (pFormatCtx->iformat->read_header(pFormatCtx) < 0) {
 		printf("could not read the format header\n");
-		goto fail;
+		goto image;
 	}
 
 	/* find the first attached picture, if available */
@@ -98,45 +102,24 @@ GdkPixbuf * retrieve_artwork_media(const char * music_dir, const char * uri) {
 			pixbuf = gdk_pixbuf_loader_get_pixbuf(loader);
 
 			gdk_pixbuf_loader_close(loader, NULL);
-			break;
+			goto done;
 		}
 	}
 
-fail:
-	avformat_close_input(&pFormatCtx);
-	avformat_free_context(pFormatCtx);
-
-	if (uri_path)
-		free(uri_path);
-
-	return pixbuf;
-}
+image:
 #endif
 
-/*** retrieve_artwork_image ***/
-GdkPixbuf * retrieve_artwork_image(const char * music_dir, const char * uri) {
-	char * icon = NULL, * uri_dirname = NULL;
-	DIR * dir;
-	struct dirent * entry;
-	regex_t regex;
-	GdkPixbuf * pixbuf = NULL;
+	/* cut the file name from path for current directory */
+	*strrchr(uri_path, '/') = 0;
 
-	uri_dirname = strdup(uri);
-
-	/* cut the dirname or just use "." (string, not char!) for current directory */
-	if (strrchr(uri_dirname, '/') != NULL)
-		*strrchr(uri_dirname, '/') = 0;
-	else
-		strcpy(uri_dirname, ".");
-
-	if ((dir = opendir(uri_dirname)) == NULL) {
-		fprintf(stderr, "%s: Can not read directory '%s': ", program, uri_dirname);
-		return NULL;
+	if ((dir = opendir(uri_path)) == NULL) {
+		fprintf(stderr, "%s: Can not read directory '%s': ", program, uri_path);
+		goto fail;
 	}
 
 	if (regcomp(&regex, REGEX_ARTWORK, REG_NOSUB + REG_ICASE) != 0) {
 		fprintf(stderr, "%s: Could not compile regex\n", program);
-		return NULL;
+		goto fail;
 	}
 
 	while ((entry = readdir(dir))) {
@@ -144,10 +127,10 @@ GdkPixbuf * retrieve_artwork_image(const char * music_dir, const char * uri) {
 			continue;
 
 		if (regexec(&regex, entry->d_name, 0, NULL, 0) == 0) {
-			icon = malloc(strlen(music_dir) + strlen(uri_dirname) + strlen(entry->d_name) + 3);
-			sprintf(icon, "%s/%s/%s", music_dir, uri_dirname, entry->d_name);
-			pixbuf = gdk_pixbuf_new_from_file (icon, NULL);
-			free(icon);
+			imagefile = malloc(strlen(uri_path) + strlen(entry->d_name) + 2);
+			sprintf(imagefile, "%s/%s", uri_path, entry->d_name);
+			pixbuf = gdk_pixbuf_new_from_file(imagefile, NULL);
+			free(imagefile);
 			break;
 		}
 	}
@@ -155,8 +138,13 @@ GdkPixbuf * retrieve_artwork_image(const char * music_dir, const char * uri) {
 	regfree(&regex);
 	closedir(dir);
 
-	if (uri_dirname)
-		free(uri_dirname);
+done:
+fail:
+	avformat_close_input(&pFormatCtx);
+	avformat_free_context(pFormatCtx);
+
+	if (uri_path)
+		free(uri_path);
 
 	return pixbuf;
 }
@@ -345,18 +333,10 @@ int main(int argc, char ** argv) {
 			uri = mpd_song_get_uri(song);
 
 			if (music_dir != NULL && uri != NULL) {
-#ifdef HAVE_LIBAV
-				pixbuf = retrieve_artwork_media(music_dir, uri);
+				pixbuf = retrieve_artwork(music_dir, uri);
 
 				if (verbose > 0 && pixbuf != NULL)
-					printf("%s: found artwork in media file: %s/%s\n", program, music_dir, uri);
-
-				if (pixbuf == NULL)
-#endif
-					pixbuf = retrieve_artwork_image(music_dir, uri);
-
-				if (verbose > 0 && pixbuf != NULL)
-					printf("%s: found artwork in image file near %s/%s\n", program, music_dir, uri);
+					printf("%s: found artwork in or near media file: %s/%s\n", program, music_dir, uri);
 			}
 
 			mpd_song_free(song);
