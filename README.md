@@ -57,11 +57,11 @@ or `systemctl --user enable mpd-notification`.
 `mpd-notification` accepts some arguments:
 
 * *-h*: show help
-* *-H HOST*: connect to HOST
-* *-m MUSIC-DIR*: use MUSIC-DIR for artwork lookup
+* *-H HOST*: connect to *HOST*
+* *-m MUSIC-DIR*: use *MUSIC-DIR* for artwork lookup
 * *-o*: Notification text is one line (no line breaks)
-* *-p PORT*: connect to PORT
-* *-t TIMEOUT*: notification timeout
+* *-p PORT*: connect to *PORT*
+* *-t TIMEOUT*: notification timeout, *TIMEOUT* in seconds
 * *-v*: verbose output
 * *-V*: print version information
 
