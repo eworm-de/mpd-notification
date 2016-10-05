@@ -59,8 +59,8 @@ void received_signal(int signal) {
 }
 
 #ifdef HAVE_LIBAV
-/*** retrieve_album_art ***/
-GdkPixbuf * retrieve_album_art(const char * music_dir, const char * uri) {
+/*** retrieve_artwork_media ***/
+GdkPixbuf * retrieve_artwork_media(const char * music_dir, const char * uri) {
 	int i;
 	AVPacket pkt;
 	AVFormatContext * pFormatCtx;
@@ -113,12 +113,13 @@ fail:
 }
 #endif
 
-/*** get_icon ***/
-char * get_icon(const char * music_dir, const char * uri) {
+/*** retrieve_artwork_image ***/
+GdkPixbuf * retrieve_artwork_image(const char * music_dir, const char * uri) {
 	char * icon = NULL, * uri_dirname = NULL;
 	DIR * dir;
 	struct dirent * entry;
 	regex_t regex;
+	GdkPixbuf * pixbuf = NULL;
 
 	uri_dirname = strdup(uri);
 
@@ -145,6 +146,8 @@ char * get_icon(const char * music_dir, const char * uri) {
 		if (regexec(&regex, entry->d_name, 0, NULL, 0) == 0) {
 			icon = malloc(strlen(music_dir) + strlen(uri_dirname) + strlen(entry->d_name) + 3);
 			sprintf(icon, "%s/%s/%s", music_dir, uri_dirname, entry->d_name);
+			pixbuf = gdk_pixbuf_new_from_file (icon, NULL);
+			free(icon);
 			break;
 		}
 	}
@@ -155,7 +158,7 @@ char * get_icon(const char * music_dir, const char * uri) {
 	if (uri_dirname)
 		free(uri_dirname);
 
-	return icon;
+	return pixbuf;
 }
 
 /*** append_string ***/
@@ -183,7 +186,7 @@ char * append_string(char * string, const char * format, const char delim, const
 /*** main ***/
 int main(int argc, char ** argv) {
 	const char * title = NULL, * artist = NULL, * album = NULL;
-	char * icon = NULL, * notifystr = NULL;
+	char * notifystr = NULL;
 	GdkPixbuf * pixbuf = NULL;
 	GError * error = NULL;
 	unsigned short int errcount = 0, state = MPD_STATE_UNKNOWN;
@@ -343,17 +346,17 @@ int main(int argc, char ** argv) {
 
 			if (music_dir != NULL && uri != NULL) {
 #ifdef HAVE_LIBAV
-				pixbuf = retrieve_album_art(music_dir, uri);
+				pixbuf = retrieve_artwork_media(music_dir, uri);
 
 				if (verbose > 0 && pixbuf != NULL)
 					printf("%s: found artwork in media file: %s/%s\n", program, music_dir, uri);
 
 				if (pixbuf == NULL)
 #endif
-					icon = get_icon(music_dir, uri);
+					pixbuf = retrieve_artwork_image(music_dir, uri);
 
-				if (verbose > 0 && icon != NULL)
-					printf("%s: found icon: %s\n", program, icon);
+				if (verbose > 0 && pixbuf != NULL)
+					printf("%s: found artwork in image file near %s/%s\n", program, music_dir, uri);
 			}
 
 			mpd_song_free(song);
@@ -367,13 +370,8 @@ int main(int argc, char ** argv) {
 		if (verbose > 0)
 			printf("%s: %s\n", program, notifystr);
 
-		/* What combinations do we have?
-		 *   icon  pixbuf (impossible, icon is set only when !pixbuf)
-		 *  !icon  pixbuf -> icon -> NULL (use pixbuf)
-		 *  !icon !pixbuf -> ICON_AUDIO_X_GENERIC
-		 *   icon !pixbuf -> icon */
 		notify_notification_update(notification, TEXT_TOPIC, notifystr,
-				icon == NULL && pixbuf == NULL ? ICON_AUDIO_X_GENERIC : icon);
+				ICON_AUDIO_X_GENERIC);
 
 		/* Call this unconditionally! When pixbuf is NULL this clears old image. */
 		notify_notification_set_image_from_pixbuf(notification, pixbuf);
@@ -407,10 +405,6 @@ nonotification:
 		if (notifystr != NULL) {
 			free(notifystr);
 			notifystr = NULL;
-		}
-		if (icon != NULL) {
-			free(icon);
-			icon = NULL;
 		}
 		if (pixbuf != NULL) {
 			g_object_unref(pixbuf);

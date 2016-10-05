@@ -34,13 +34,13 @@
 /*** received_signal ***/
 void received_signal(int signal);
 
-/*** retrieve_album_art ***/
+/*** retrieve_artwork_media ***/
 #ifdef HAVE_LIBAV
-GdkPixbuf * retrieve_album_art(const char * music_dir, const char * uri);
+GdkPixbuf * retrieve_artwork_media(const char * music_dir, const char * uri);
 #endif
 
-/*** get_icon ***/
-char * get_icon(const char * music_dir, const char * uri);
+/*** retrieve_artwork_image ***/
+GdkPixbuf * retrieve_artwork_image(const char * music_dir, const char * uri);
 
 /*** append_string ***/
 char * append_string(char * string, const char * format, const char delim, const char * s);
