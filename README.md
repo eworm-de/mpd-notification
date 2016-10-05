@@ -20,6 +20,7 @@ Requirements
 
 To compile and run `mpd-notification` you need:
 
+* [iniparser](http://ndevilla.free.fr/iniparser/)
 * [libav](https://libav.org/) or [ffmpeg](https://www.ffmpeg.org/)
 * [libnotify](http://library.gnome.org/devel/notification-spec/)
 * [libmpdclient](http://www.musicpd.org/libs/libmpdclient/)
@@ -69,16 +70,32 @@ or `systemctl --user enable mpd-notification`.
 * *-v*: verbose output
 * *-V*: print version information
 
+Configuration
+-------------
+
+Configuration options can be read from a configuration file. `mpd`
+tries to read `~/.local/mpd-notification.conf`, which is expected to
+look like this:
+
+    host = localhost
+    port = 6600
+    music-dir = /srv/media/music/
+    scale = 200
+    timeout = 20
+
+Unused options can be commented or removed completely.
+
 Artwork
 -------
 
 `mpd` does not provide any information where it finds its music files. To make
 `mpd-notification` display album artwork you need to tell it where to look for
-artwork. You can do that by exporting `XDG_MUSIC_DIR` to your environment or by
-specifying `-m` or `--music-dir` on the command line. `mpd-notification` reads
-album artwork from `mp3` files, otherwise an image file containing the artwork
-needs to be placed in the same directory as the media file and named
-`cover.jpg`, `cover.png`, `folder.jpg` or `folder.png`.
+artwork. You can do that by exporting `XDG_MUSIC_DIR` to your environment, by
+specifying `-m` or `--music-dir` on the command line or by setting `music-dir`
+in configuration file. `mpd-notification` reads album artwork from `mp3`
+files, otherwise an image file containing the artwork needs to be placed
+in the same directory as the media file and named `cover.jpg`,
+`cover.png`, `folder.jpg` or `folder.png`.
 
 ### Upstream
 

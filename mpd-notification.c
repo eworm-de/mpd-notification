@@ -176,6 +176,7 @@ char * append_string(char * string, const char * format, const char delim, const
 
 /*** main ***/
 int main(int argc, char ** argv) {
+	dictionary * ini = NULL;
 	const char * title = NULL, * artist = NULL, * album = NULL;
 	char * notifystr = NULL;
 	GdkPixbuf * pixbuf = NULL;
@@ -197,6 +198,17 @@ int main(int argc, char ** argv) {
 		mpd_port = atoi(mpd_port_str);
 
 	music_dir = getenv("XDG_MUSIC_DIR");
+
+	/* parse config file */
+	if (chdir(getenv("HOME")) == 0 && access(".config/mpd-notification.conf", R_OK) == 0 &&
+			(ini = iniparser_load(".config/mpd-notification.conf")) != NULL) {
+		file_workaround = iniparser_getboolean(ini, ":notification-file-workaround", file_workaround);
+		mpd_host = iniparser_getstring(ini, ":host", mpd_host);
+		mpd_port = iniparser_getint(ini, ":port", mpd_port);
+		notification_timeout = iniparser_getint(ini, ":timeout", notification_timeout);
+		music_dir = iniparser_getstring(ini, ":music-dir", music_dir);
+		scale = iniparser_getint(ini, ":scale", scale);
+	}
 
 	/* get the verbose status */
 	while ((i = getopt_long(argc, argv, optstring, options_long, NULL)) != -1) {
@@ -434,6 +446,9 @@ nonotification:
 
 	g_object_unref(G_OBJECT(notification));
 	notify_uninit();
+
+	if (ini != NULL)
+		iniparser_freedict(ini);
 
 	return EXIT_SUCCESS;
 }
