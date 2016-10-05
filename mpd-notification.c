@@ -7,7 +7,7 @@
 
 #include "mpd-notification.h"
 
-const static char optstring[] = "hH:m:op:t:vV";
+const static char optstring[] = "hH:m:op:s:t:vV";
 const static struct option options_long[] = {
 	/* name		has_arg			flag	val */
 	{ "help",	no_argument,		NULL,	'h' },
@@ -15,6 +15,7 @@ const static struct option options_long[] = {
 	{ "music-dir",	required_argument,	NULL,	'm' },
 	{ "oneline",	no_argument,		NULL,	'o' },
 	{ "port",	required_argument,	NULL,	'p' },
+	{ "scale",	required_argument,	NULL,	's' },
 	{ "timeout",	required_argument,	NULL,	't' },
 	{ "verbose",	no_argument,		NULL,	'v' },
 	{ "version",	no_argument,		NULL,	'V' },
@@ -181,7 +182,7 @@ int main(int argc, char ** argv) {
 	const char * mpd_host, * mpd_port_str, * music_dir, * uri = NULL;
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
 	struct mpd_song * song = NULL;
-	unsigned int i, version = 0, help = 0;
+	unsigned int i, version = 0, help = 0, scale = 0;
 
 	program = argv[0];
 
@@ -244,6 +245,9 @@ int main(int argc, char ** argv) {
 				mpd_host = optarg;
 				if (verbose > 0)
 					printf("%s: using host %s\n", program, mpd_host);
+				break;
+			case 's':
+				scale = atof(optarg);
 				break;
 			case 't':
 				notification_timeout = atof(optarg) * 1000;
@@ -333,10 +337,21 @@ int main(int argc, char ** argv) {
 			uri = mpd_song_get_uri(song);
 
 			if (music_dir != NULL && uri != NULL) {
+				GdkPixbuf * copy;
+
 				pixbuf = retrieve_artwork(music_dir, uri);
 
 				if (verbose > 0 && pixbuf != NULL)
 					printf("%s: found artwork in or near media file: %s/%s\n", program, music_dir, uri);
+
+				if (scale > 0) {
+					if ((copy = gdk_pixbuf_scale_simple (pixbuf, scale, scale, GDK_INTERP_BILINEAR)) != NULL) {
+						g_object_unref(pixbuf);
+						pixbuf = copy;
+					}
+				}
+
+
 			}
 
 			mpd_song_free(song);
