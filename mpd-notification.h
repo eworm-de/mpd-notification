@@ -10,6 +10,8 @@
 
 #define _GNU_SOURCE
 
+#include <iniparser.h>
+
 #include <mpd/client.h>
 
 #include <libnotify/notify.h>
