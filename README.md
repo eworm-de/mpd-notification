@@ -59,8 +59,12 @@ or `systemctl --user enable mpd-notification`.
 * *-h*: show help
 * *-H HOST*: connect to *HOST*
 * *-m MUSIC-DIR*: use *MUSIC-DIR* for artwork lookup
+* *--notification-file-workaround*: write artwork to file for notification
+    daemons that do required it
 * *-o*: Notification text is one line (no line breaks)
 * *-p PORT*: connect to *PORT*
+* *-s PIXELS*: scale image to a maximum size *PIXELS* x *PIXELS* pixels, keeping
+    ratio
 * *-t TIMEOUT*: notification timeout, *TIMEOUT* in seconds
 * *-v*: verbose output
 * *-V*: print version information

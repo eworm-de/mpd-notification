@@ -7,7 +7,7 @@
 
 #include "mpd-notification.h"
 
-const static char optstring[] = "hH:m:op:t:vV";
+const static char optstring[] = "hH:m:op:s:t:vV";
 const static struct option options_long[] = {
 	/* name		has_arg			flag	val */
 	{ "help",	no_argument,		NULL,	'h' },
@@ -15,9 +15,12 @@ const static struct option options_long[] = {
 	{ "music-dir",	required_argument,	NULL,	'm' },
 	{ "oneline",	no_argument,		NULL,	'o' },
 	{ "port",	required_argument,	NULL,	'p' },
+	{ "scale",	required_argument,	NULL,	's' },
 	{ "timeout",	required_argument,	NULL,	't' },
 	{ "verbose",	no_argument,		NULL,	'v' },
 	{ "version",	no_argument,		NULL,	'V' },
+	{ "notification-file-workaround",
+			no_argument,		NULL,	OPT_FILE_WORKAROUND },
 	{ 0, 0, 0, 0 }
 };
 
@@ -58,15 +61,19 @@ void received_signal(int signal) {
 	}
 }
 
+/*** retrieve_artwork ***/
+GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
+	GdkPixbuf * pixbuf = NULL;
+	char * uri_path = NULL, * imagefile = NULL;
+	DIR * dir;
+	struct dirent * entry;
+	regex_t regex;
+
 #ifdef HAVE_LIBAV
-/*** retrieve_album_art ***/
-GdkPixbuf * retrieve_album_art(const char * music_dir, const char * uri) {
 	int i;
 	AVPacket pkt;
 	AVFormatContext * pFormatCtx;
 	GdkPixbufLoader * loader;
-	GdkPixbuf * pixbuf = NULL;
-	char * uri_path = NULL;
 
 	/* try album artwork first */
 	uri_path = malloc(strlen(music_dir) + strlen(uri) + 2);
@@ -76,16 +83,16 @@ GdkPixbuf * retrieve_album_art(const char * music_dir, const char * uri) {
 
 	if (avformat_open_input(&pFormatCtx, uri_path, NULL, NULL) != 0) {
 		printf("avformat_open_input() failed");
-		goto fail;
+		goto image;
 	}
 
 	/* only mp3 file contain artwork, so ignore others */
 	if (strcmp(pFormatCtx->iformat->name, "mp3") != 0)
-		goto fail;
+		goto image;
 
 	if (pFormatCtx->iformat->read_header(pFormatCtx) < 0) {
 		printf("could not read the format header\n");
-		goto fail;
+		goto image;
 	}
 
 	/* find the first attached picture, if available */
@@ -98,10 +105,43 @@ GdkPixbuf * retrieve_album_art(const char * music_dir, const char * uri) {
 			pixbuf = gdk_pixbuf_loader_get_pixbuf(loader);
 
 			gdk_pixbuf_loader_close(loader, NULL);
+			goto done;
+		}
+	}
+
+image:
+#endif
+
+	/* cut the file name from path for current directory */
+	*strrchr(uri_path, '/') = 0;
+
+	if ((dir = opendir(uri_path)) == NULL) {
+		fprintf(stderr, "%s: Can not read directory '%s': ", program, uri_path);
+		goto fail;
+	}
+
+	if (regcomp(&regex, REGEX_ARTWORK, REG_NOSUB + REG_ICASE) != 0) {
+		fprintf(stderr, "%s: Could not compile regex\n", program);
+		goto fail;
+	}
+
+	while ((entry = readdir(dir))) {
+		if (*entry->d_name == '.')
+			continue;
+
+		if (regexec(&regex, entry->d_name, 0, NULL, 0) == 0) {
+			imagefile = malloc(strlen(uri_path) + strlen(entry->d_name) + 2);
+			sprintf(imagefile, "%s/%s", uri_path, entry->d_name);
+			pixbuf = gdk_pixbuf_new_from_file(imagefile, NULL);
+			free(imagefile);
 			break;
 		}
 	}
 
+	regfree(&regex);
+	closedir(dir);
+
+done:
 fail:
 	avformat_close_input(&pFormatCtx);
 	avformat_free_context(pFormatCtx);
@@ -110,52 +150,6 @@ fail:
 		free(uri_path);
 
 	return pixbuf;
-}
-#endif
-
-/*** get_icon ***/
-char * get_icon(const char * music_dir, const char * uri) {
-	char * icon = NULL, * uri_dirname = NULL;
-	DIR * dir;
-	struct dirent * entry;
-	regex_t regex;
-
-	uri_dirname = strdup(uri);
-
-	/* cut the dirname or just use "." (string, not char!) for current directory */
-	if (strrchr(uri_dirname, '/') != NULL)
-		*strrchr(uri_dirname, '/') = 0;
-	else
-		strcpy(uri_dirname, ".");
-
-	if ((dir = opendir(uri_dirname)) == NULL) {
-		fprintf(stderr, "%s: Can not read directory '%s': ", program, uri_dirname);
-		return NULL;
-	}
-
-	if (regcomp(&regex, REGEX_ARTWORK, REG_NOSUB + REG_ICASE) != 0) {
-		fprintf(stderr, "%s: Could not compile regex\n", program);
-		return NULL;
-	}
-
-	while ((entry = readdir(dir))) {
-		if (*entry->d_name == '.')
-			continue;
-
-		if (regexec(&regex, entry->d_name, 0, NULL, 0) == 0) {
-			icon = malloc(strlen(music_dir) + strlen(uri_dirname) + strlen(entry->d_name) + 3);
-			sprintf(icon, "%s/%s/%s", music_dir, uri_dirname, entry->d_name);
-			break;
-		}
-	}
-
-	regfree(&regex);
-	closedir(dir);
-
-	if (uri_dirname)
-		free(uri_dirname);
-
-	return icon;
 }
 
 /*** append_string ***/
@@ -183,14 +177,14 @@ char * append_string(char * string, const char * format, const char delim, const
 /*** main ***/
 int main(int argc, char ** argv) {
 	const char * title = NULL, * artist = NULL, * album = NULL;
-	char * icon = NULL, * notifystr = NULL;
+	char * notifystr = NULL;
 	GdkPixbuf * pixbuf = NULL;
 	GError * error = NULL;
 	unsigned short int errcount = 0, state = MPD_STATE_UNKNOWN;
 	const char * mpd_host, * mpd_port_str, * music_dir, * uri = NULL;
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
 	struct mpd_song * song = NULL;
-	unsigned int i, version = 0, help = 0;
+	unsigned int i, version = 0, help = 0, scale = 0, file_workaround = 0;
 
 	program = argv[0];
 
@@ -231,7 +225,7 @@ int main(int argc, char ** argv) {
 		printf("%s: %s v%s (compiled: " __DATE__ ", " __TIME__ ")\n", program, PROGNAME, VERSION);
 
 	if (help > 0)
-		fprintf(stderr, "usage: %s [-h] [-H HOST] [-p PORT] [-m MUSIC-DIR] [-t TIMEOUT] [-v] [-V]\n", program);
+		fprintf(stderr, "usage: %s [-h] [-H HOST] [-p PORT] [-m MUSIC-DIR] [-s PIXELS] [-t TIMEOUT] [-v] [-V]\n", program);
 
 	if (version > 0 || help > 0)
 		return EXIT_SUCCESS;
@@ -254,10 +248,16 @@ int main(int argc, char ** argv) {
 				if (verbose > 0)
 					printf("%s: using host %s\n", program, mpd_host);
 				break;
+			case 's':
+				scale = atof(optarg);
+				break;
 			case 't':
 				notification_timeout = atof(optarg) * 1000;
 				if (verbose > 0)
 					printf("%s: using notification-timeout %d\n", program, notification_timeout);
+				break;
+			case OPT_FILE_WORKAROUND:
+				file_workaround++;
 				break;
 		}
 	}
@@ -342,18 +342,29 @@ int main(int argc, char ** argv) {
 			uri = mpd_song_get_uri(song);
 
 			if (music_dir != NULL && uri != NULL) {
-#ifdef HAVE_LIBAV
-				pixbuf = retrieve_album_art(music_dir, uri);
+				GdkPixbuf * copy;
+
+				pixbuf = retrieve_artwork(music_dir, uri);
 
 				if (verbose > 0 && pixbuf != NULL)
-					printf("%s: found artwork in media file: %s/%s\n", program, music_dir, uri);
+					printf("%s: found artwork in or near media file: %s/%s\n", program, music_dir, uri);
 
-				if (pixbuf == NULL)
-#endif
-					icon = get_icon(music_dir, uri);
+				if (scale > 0) {
+					int x, y;
 
-				if (verbose > 0 && icon != NULL)
-					printf("%s: found icon: %s\n", program, icon);
+					x = gdk_pixbuf_get_width(pixbuf);
+					y = gdk_pixbuf_get_height(pixbuf);
+
+					if ((copy = gdk_pixbuf_scale_simple (pixbuf,
+							(x > y ? scale : scale * x / y),
+							(y > x ? scale : scale * y / x),
+							GDK_INTERP_BILINEAR)) != NULL) {
+						g_object_unref(pixbuf);
+						pixbuf = copy;
+					}
+				}
+
+
 			}
 
 			mpd_song_free(song);
@@ -367,13 +378,14 @@ int main(int argc, char ** argv) {
 		if (verbose > 0)
 			printf("%s: %s\n", program, notifystr);
 
-		/* What combinations do we have?
-		 *   icon  pixbuf (impossible, icon is set only when !pixbuf)
-		 *  !icon  pixbuf -> icon -> NULL (use pixbuf)
-		 *  !icon !pixbuf -> ICON_AUDIO_X_GENERIC
-		 *   icon !pixbuf -> icon */
-		notify_notification_update(notification, TEXT_TOPIC, notifystr,
-				icon == NULL && pixbuf == NULL ? ICON_AUDIO_X_GENERIC : icon);
+		/* Some notification daemons do not support handing pixbuf data. Write a PNG
+		 * file and give the path. */
+		if (file_workaround > 0 && pixbuf != NULL) {
+			gdk_pixbuf_save(pixbuf, "/tmp/.mpd-notification-artwork.png", "png", NULL, NULL);
+
+			notify_notification_update(notification, TEXT_TOPIC, notifystr, "/tmp/.mpd-notification-artwork.png");
+		} else
+			notify_notification_update(notification, TEXT_TOPIC, notifystr, ICON_AUDIO_X_GENERIC);
 
 		/* Call this unconditionally! When pixbuf is NULL this clears old image. */
 		notify_notification_set_image_from_pixbuf(notification, pixbuf);
@@ -407,10 +419,6 @@ nonotification:
 		if (notifystr != NULL) {
 			free(notifystr);
 			notifystr = NULL;
-		}
-		if (icon != NULL) {
-			free(icon);
-			icon = NULL;
 		}
 		if (pixbuf != NULL) {
 			g_object_unref(pixbuf);

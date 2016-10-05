@@ -31,16 +31,13 @@
 
 #define PROGNAME	"mpd-notification"
 
+#define OPT_FILE_WORKAROUND UCHAR_MAX + 1
+
 /*** received_signal ***/
 void received_signal(int signal);
 
-/*** retrieve_album_art ***/
-#ifdef HAVE_LIBAV
-GdkPixbuf * retrieve_album_art(const char * music_dir, const char * uri);
-#endif
-
-/*** get_icon ***/
-char * get_icon(const char * music_dir, const char * uri);
+/*** retrieve_artwork ***/
+GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri);
 
 /*** append_string ***/
 char * append_string(char * string, const char * format, const char delim, const char * s);
