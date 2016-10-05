@@ -20,6 +20,7 @@ Requirements
 
 To compile and run `mpd-notification` you need:
 
+* [iniparser](http://ndevilla.free.fr/iniparser/)
 * [libav](https://libav.org/) or [ffmpeg](https://www.ffmpeg.org/)
 * [libnotify](http://library.gnome.org/devel/notification-spec/)
 * [libmpdclient](http://www.musicpd.org/libs/libmpdclient/)
