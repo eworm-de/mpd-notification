@@ -205,6 +205,7 @@ int main(int argc, char ** argv) {
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
 	struct mpd_song * song = NULL;
 	unsigned int i, version = 0, help = 0, scale = 0, file_workaround = 0;
+	int rc = EXIT_FAILURE;
 
 	program = argv[0];
 
@@ -315,13 +316,13 @@ int main(int argc, char ** argv) {
 
 	if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
 		fprintf(stderr, "%s: unable to initialize magic library\n", program);
-		goto fail;
+		goto out40;
 	}
 
 	if (magic_load(magic, NULL) != 0) {
 		fprintf(stderr, "%s: cannot load magic database: %s\n", program, magic_error(magic));
 		magic_close(magic);
-		goto fail;
+		goto out30;
 	}
 #endif
 
@@ -329,13 +330,12 @@ int main(int argc, char ** argv) {
 
 	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
 		fprintf(stderr,"%s: %s\n", program, mpd_connection_get_error_message(conn));
-		mpd_connection_free(conn);
-		exit(EXIT_FAILURE);
+		goto out30;
 	}
 
 	if(notify_init(PROGNAME) == FALSE) {
 		fprintf(stderr, "%s: Can't create notify.\n", program);
-		exit(EXIT_FAILURE);
+		goto out20;
 	}
 
 	notification =
@@ -434,7 +434,7 @@ int main(int argc, char ** argv) {
 		while(notify_notification_show(notification, &error) == FALSE) {
 			if (errcount > 1) {
 				fprintf(stderr, "%s: Looks like we can not reconnect to notification daemon... Exiting.\n", program);
-				exit(EXIT_FAILURE);
+				goto out10;
 			} else {
 				g_printerr("%s: Error \"%s\" while trying to show notification. Trying to reconnect.\n", program, error->message);
 				errcount++;
@@ -448,7 +448,7 @@ int main(int argc, char ** argv) {
 
 				if(notify_init(PROGNAME) == FALSE) {
 					fprintf(stderr, "%s: Can't create notify.\n", program);
-					exit(EXIT_FAILURE);
+					goto out10;
 				}
 			}
 		}
@@ -469,19 +469,25 @@ nonotification:
 	if (verbose > 0)
 		printf("%s: Exiting...\n", program);
 
-fail:
+	rc = EXIT_SUCCESS;
+
+out10:
+	g_object_unref(G_OBJECT(notification));
+	notify_uninit();
+
+out20:
+	if (conn != NULL)
+		mpd_connection_free(conn);
+
 #ifdef HAVE_LIBAV
+out30:
 	if (magic != NULL)
 		magic_close(magic);
 #endif
 
-	mpd_connection_free(conn);
-
-	g_object_unref(G_OBJECT(notification));
-	notify_uninit();
-
+out40:
 	if (ini != NULL)
 		iniparser_freedict(ini);
 
-	return EXIT_SUCCESS;
+	return rc;
 }
