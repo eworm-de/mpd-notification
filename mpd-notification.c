@@ -40,7 +40,7 @@ void received_signal(int signal) {
 		case SIGINT:
 		case SIGTERM:
 			if (verbose > 0)
-				printf("Received signal %s, preparing exit.\n", strsignal(signal));
+				printf("%s: Received signal %s, preparing exit.\n", program, strsignal(signal));
 
 			doexit++;
 			mpd_send_noidle(conn);
@@ -49,7 +49,7 @@ void received_signal(int signal) {
 		case SIGHUP:
 		case SIGUSR1:
 			if (verbose > 0)
-				printf("Received signal %s, showing last notification again.\n", strsignal(signal));
+				printf("%s: Received signal %s, showing last notification again.\n", program, strsignal(signal));
 
 			if (notify_notification_show(notification, &error) == FALSE) {
 				g_printerr("%s: Error \"%s\" while trying to show notification again.\n", program, error->message);
@@ -57,7 +57,7 @@ void received_signal(int signal) {
 			}
 			break;
 		default:
-			fprintf(stderr, "Reveived signal %s (%d), no idea what to do...\n", strsignal(signal), signal);
+			fprintf(stderr, "%s: Reveived signal %s (%d), no idea what to do...\n", program, strsignal(signal), signal);
 	}
 }
 
@@ -81,18 +81,18 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	sprintf(uri_path, "%s/%s", music_dir, uri);
 
 	if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
-		fprintf(stderr, "unable to initialize magic library\n");
+		fprintf(stderr, "%s: unable to initialize magic library\n", program);
 		goto image;
 	}
 
 	if (magic_load(magic, NULL) != 0) {
-		fprintf(stderr, "cannot load magic database: %s\n", magic_error(magic));
+		fprintf(stderr, "%s: cannot load magic database: %s\n", program, magic_error(magic));
 		magic_close(magic);
 		goto image;
 	}
 
 	if ((magic_mime = magic_file(magic, uri_path)) == NULL) {
-		fprintf(stderr, "No MIME...\n");
+		fprintf(stderr, "%s: We did not get a MIME type...\n", program);
 		goto image;
 	}
 
@@ -105,12 +105,12 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	pFormatCtx = avformat_alloc_context();
 
 	if (avformat_open_input(&pFormatCtx, uri_path, NULL, NULL) != 0) {
-		printf("avformat_open_input() failed");
+		fprintf(stderr, "%s: avformat_open_input() failed", program);
 		goto image;
 	}
 
 	if (pFormatCtx->iformat->read_header(pFormatCtx) < 0) {
-		printf("could not read the format header\n");
+		fprintf(stderr, "%s: could not read the format header\n", program);
 		goto image;
 	}
 
@@ -470,7 +470,7 @@ nonotification:
 	}
 
 	if (verbose > 0)
-		printf("Exiting...\n");
+		printf("%s: Exiting...\n", program);
 
 	mpd_connection_free(conn);
 
