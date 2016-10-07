@@ -31,6 +31,9 @@ struct mpd_connection * conn = NULL;
 uint8_t doexit = 0;
 uint8_t verbose = 0;
 uint8_t oneline = 0;
+#ifdef HAVE_LIBAV
+	magic_t magic = NULL;
+#endif
 
 /*** received_signal ***/
 void received_signal(int signal) {
@@ -71,7 +74,6 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 
 #ifdef HAVE_LIBAV
 	int i;
-	magic_t magic = NULL;
 	const char *magic_mime;
 	AVFormatContext * pFormatCtx = NULL;
 	GdkPixbufLoader * loader;
@@ -79,17 +81,6 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	/* try album artwork first */
 	uri_path = malloc(strlen(music_dir) + strlen(uri) + 2);
 	sprintf(uri_path, "%s/%s", music_dir, uri);
-
-	if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
-		fprintf(stderr, "%s: unable to initialize magic library\n", program);
-		goto image;
-	}
-
-	if (magic_load(magic, NULL) != 0) {
-		fprintf(stderr, "%s: cannot load magic database: %s\n", program, magic_error(magic));
-		magic_close(magic);
-		goto image;
-	}
 
 	if ((magic_mime = magic_file(magic, uri_path)) == NULL) {
 		fprintf(stderr, "%s: We did not get a MIME type...\n", program);
@@ -174,11 +165,6 @@ fail:
 		avformat_close_input(&pFormatCtx);
 		avformat_free_context(pFormatCtx);
 	}
-
-#ifdef HAVE_LIBAV
-	if (magic != NULL)
-		magic_close(magic);
-#endif
 
 	free(uri_path);
 
@@ -326,6 +312,17 @@ int main(int argc, char ** argv) {
 	/* only fatal messages from libav */
 	if (verbose == 0)
 		av_log_set_level(AV_LOG_FATAL);
+
+	if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
+		fprintf(stderr, "%s: unable to initialize magic library\n", program);
+		goto fail;
+	}
+
+	if (magic_load(magic, NULL) != 0) {
+		fprintf(stderr, "%s: cannot load magic database: %s\n", program, magic_error(magic));
+		magic_close(magic);
+		goto fail;
+	}
 #endif
 
 	conn = mpd_connection_new(mpd_host, mpd_port, mpd_timeout);
@@ -471,6 +468,12 @@ nonotification:
 
 	if (verbose > 0)
 		printf("%s: Exiting...\n", program);
+
+fail:
+#ifdef HAVE_LIBAV
+	if (magic != NULL)
+		magic_close(magic);
+#endif
 
 	mpd_connection_free(conn);
 
