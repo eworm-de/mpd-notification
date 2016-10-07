@@ -96,6 +96,9 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 		goto image;
 	}
 
+	if (verbose > 0)
+		printf("%s: MIME type for %s is: %s\n", program, uri_path, magic_mime);
+
 	if (strcmp(magic_mime, "audio/mpeg") != 0)
 		goto image;
 
@@ -114,7 +117,12 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	/* find the first attached picture, if available */
 	for (i = 0; i < pFormatCtx->nb_streams; i++) {
 		if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
-			AVPacket pkt = pFormatCtx->streams[i]->attached_pic;
+			AVPacket pkt;
+
+			if (verbose > 0)
+				printf("%s: Found artwork in media file.\n", program);
+
+			pkt = pFormatCtx->streams[i]->attached_pic;
 
 			loader = gdk_pixbuf_loader_new();
 			gdk_pixbuf_loader_write(loader, pkt.data, pkt.size, NULL);
@@ -146,6 +154,9 @@ image:
 			continue;
 
 		if (regexec(&regex, entry->d_name, 0, NULL, 0) == 0) {
+			if (verbose > 0)
+				printf("%s: Found image file: %s\n", program, entry->d_name);
+
 			imagefile = malloc(strlen(uri_path) + strlen(entry->d_name) + 2);
 			sprintf(imagefile, "%s/%s", uri_path, entry->d_name);
 			pixbuf = gdk_pixbuf_new_from_file(imagefile, NULL);
@@ -379,9 +390,6 @@ int main(int argc, char ** argv) {
 				GdkPixbuf * copy;
 
 				pixbuf = retrieve_artwork(music_dir, uri);
-
-				if (verbose > 0 && pixbuf != NULL)
-					printf("%s: found artwork in or near media file: %s/%s\n", program, music_dir, uri);
 
 				if (scale > 0) {
 					int x, y;
