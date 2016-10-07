@@ -81,6 +81,7 @@ look like this:
     host = localhost
     port = 6600
     music-dir = /srv/media/music/
+    oneline = true
     scale = 200
     timeout = 20
 

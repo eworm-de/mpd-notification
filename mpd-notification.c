@@ -227,8 +227,9 @@ int main(int argc, char ** argv) {
 		file_workaround = iniparser_getboolean(ini, ":notification-file-workaround", file_workaround);
 		mpd_host = iniparser_getstring(ini, ":host", mpd_host);
 		mpd_port = iniparser_getint(ini, ":port", mpd_port);
-		notification_timeout = iniparser_getint(ini, ":timeout", notification_timeout);
 		music_dir = iniparser_getstring(ini, ":music-dir", music_dir);
+		notification_timeout = iniparser_getint(ini, ":timeout", notification_timeout);
+		oneline = iniparser_getboolean(ini, ":oneline", oneline);
 		scale = iniparser_getint(ini, ":scale", scale);
 	}
 
