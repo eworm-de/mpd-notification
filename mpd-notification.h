@@ -19,11 +19,13 @@
 #include <unistd.h>
 
 #include <iniparser.h>
-#ifdef HAVE_LIBAV
-#include <libavformat/avformat.h>
-#endif
 #include <libnotify/notify.h>
 #include <mpd/client.h>
+
+#ifdef HAVE_LIBAV
+#include <libavformat/avformat.h>
+#include <magic.h>
+#endif
 
 #include "config.h"
 #include "version.h"

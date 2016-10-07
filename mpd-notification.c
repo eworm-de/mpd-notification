@@ -71,13 +71,33 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 
 #ifdef HAVE_LIBAV
 	int i;
-	AVPacket pkt;
-	AVFormatContext * pFormatCtx;
+	magic_t magic = NULL;
+	const char *magic_mime;
+	AVFormatContext * pFormatCtx = NULL;
 	GdkPixbufLoader * loader;
 
 	/* try album artwork first */
 	uri_path = malloc(strlen(music_dir) + strlen(uri) + 2);
 	sprintf(uri_path, "%s/%s", music_dir, uri);
+
+	if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
+		fprintf(stderr, "unable to initialize magic library\n");
+		goto image;
+	}
+
+	if (magic_load(magic, NULL) != 0) {
+		fprintf(stderr, "cannot load magic database: %s\n", magic_error(magic));
+		magic_close(magic);
+		goto image;
+	}
+
+	if ((magic_mime = magic_file(magic, uri_path)) == NULL) {
+		fprintf(stderr, "No MIME...\n");
+		goto image;
+	}
+
+	if (strcmp(magic_mime, "audio/mpeg") != 0)
+		goto image;
 
 	pFormatCtx = avformat_alloc_context();
 
@@ -85,10 +105,6 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 		printf("avformat_open_input() failed");
 		goto image;
 	}
-
-	/* only mp3 file contain artwork, so ignore others */
-	if (strcmp(pFormatCtx->iformat->name, "mp3") != 0)
-		goto image;
 
 	if (pFormatCtx->iformat->read_header(pFormatCtx) < 0) {
 		printf("could not read the format header\n");
@@ -98,7 +114,7 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	/* find the first attached picture, if available */
 	for (i = 0; i < pFormatCtx->nb_streams; i++) {
 		if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
-			pkt = pFormatCtx->streams[i]->attached_pic;
+			AVPacket pkt = pFormatCtx->streams[i]->attached_pic;
 
 			loader = gdk_pixbuf_loader_new();
 			gdk_pixbuf_loader_write(loader, pkt.data, pkt.size, NULL);
@@ -143,11 +159,17 @@ image:
 
 done:
 fail:
-	avformat_close_input(&pFormatCtx);
-	avformat_free_context(pFormatCtx);
+	if (pFormatCtx != NULL) {
+		avformat_close_input(&pFormatCtx);
+		avformat_free_context(pFormatCtx);
+	}
 
-	if (uri_path)
-		free(uri_path);
+#ifdef HAVE_LIBAV
+	if (magic != NULL)
+		magic_close(magic);
+#endif
+
+	free(uri_path);
 
 	return pixbuf;
 }
