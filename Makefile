@@ -24,7 +24,7 @@ VERSION := 0.7.5
 
 all: mpd-notification README.html
 
-mpd-notification: mpd-notification.c config.h version.h
+mpd-notification: mpd-notification.c mpd-notification.h config.h version.h
 	$(CC) $(CFLAGS) $(LDFLAGS) -o mpd-notification mpd-notification.c
 
 config.h:
