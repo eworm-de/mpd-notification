@@ -159,12 +159,14 @@ image:
 	regfree(&regex);
 	closedir(dir);
 
-done:
 fail:
+#ifdef HAVE_LIBAV
+done:
 	if (pFormatCtx != NULL) {
 		avformat_close_input(&pFormatCtx);
 		avformat_free_context(pFormatCtx);
 	}
+#endif
 
 	free(uri_path);
 
@@ -333,7 +335,7 @@ int main(int argc, char ** argv) {
 		goto out30;
 	}
 
-	if(notify_init(PROGNAME) == FALSE) {
+	if (notify_init(PROGNAME) == FALSE) {
 		fprintf(stderr, "%s: Can't create notify.\n", program);
 		goto out20;
 	}
@@ -352,7 +354,7 @@ int main(int argc, char ** argv) {
 	signal(SIGTERM, received_signal);
 	signal(SIGUSR1, received_signal);
 
-	while(doexit == 0 && mpd_run_idle_mask(conn, MPD_IDLE_PLAYER)) {
+	while (doexit == 0 && mpd_run_idle_mask(conn, MPD_IDLE_PLAYER)) {
 		mpd_command_list_begin(conn, true);
 		mpd_send_status(conn);
 		mpd_send_current_song(conn);
@@ -479,13 +481,13 @@ out20:
 	if (conn != NULL)
 		mpd_connection_free(conn);
 
-#ifdef HAVE_LIBAV
 out30:
+#ifdef HAVE_LIBAV
 	if (magic != NULL)
 		magic_close(magic);
+out40:
 #endif
 
-out40:
 	if (ini != NULL)
 		iniparser_freedict(ini);
 
