@@ -10,23 +10,20 @@
 
 #define _GNU_SOURCE
 
+#include <getopt.h>
+#include <regex.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include <iniparser.h>
-
-#include <mpd/client.h>
-
-#include <libnotify/notify.h>
-
 #ifdef HAVE_LIBAV
 #include <libavformat/avformat.h>
 #endif
-
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-#include <getopt.h>
-#include <regex.h>
+#include <libnotify/notify.h>
+#include <mpd/client.h>
 
 #include "config.h"
 #include "version.h"
