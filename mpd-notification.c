@@ -103,12 +103,12 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	}
 
 	if (avformat_open_input(&pFormatCtx, uri_path, NULL, NULL) != 0) {
-		fprintf(stderr, "%s: avformat_open_input() failed", program);
+		fprintf(stderr, "%s: avformat_open_input() failed.\n", program);
 		goto image;
 	}
 
 	if (pFormatCtx->iformat->read_header(pFormatCtx) < 0) {
-		fprintf(stderr, "%s: could not read the format header\n", program);
+		fprintf(stderr, "%s: Could not read the format header.\n", program);
 		goto image;
 	}
 
@@ -124,7 +124,7 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 
 			loader = gdk_pixbuf_loader_new();
 			if (gdk_pixbuf_loader_write(loader, pkt.data, pkt.size, NULL) == FALSE) {
-				fprintf(stderr, "%s: gdk_pixbuf_loader_write() failed parsing file.\n", program);
+				fprintf(stderr, "%s: gdk_pixbuf_loader_write() failed parsing buffer.\n", program);
 				goto image;
 			}
 
@@ -145,12 +145,12 @@ image:
 	*strrchr(uri_path, '/') = 0;
 
 	if ((dir = opendir(uri_path)) == NULL) {
-		fprintf(stderr, "%s: Can not read directory '%s': ", program, uri_path);
+		fprintf(stderr, "%s: Could not open directory '%s': %s", program, uri_path, strerror(errno));
 		goto fail;
 	}
 
 	if (regcomp(&regex, REGEX_ARTWORK, REG_NOSUB + REG_ICASE) != 0) {
-		fprintf(stderr, "%s: Could not compile regex\n", program);
+		fprintf(stderr, "%s: Could not compile regex.\n", program);
 		goto fail;
 	}
 
@@ -328,7 +328,7 @@ int main(int argc, char ** argv) {
 	/* change directory to music base directory */
 	if (music_dir != NULL) {
 		if (chdir(music_dir) == -1) {
-			fprintf(stderr, "%s: Can not change directory to '%s'.\n", program, music_dir);
+			fprintf(stderr, "%s: Could not change directory to: %s\n", program, music_dir);
 			music_dir = NULL;
 		}
 	}
@@ -342,12 +342,12 @@ int main(int argc, char ** argv) {
 		av_log_set_level(AV_LOG_FATAL);
 
 	if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
-		fprintf(stderr, "%s: unable to initialize magic library\n", program);
+		fprintf(stderr, "%s: Could not initialize magic library.\n", program);
 		goto out40;
 	}
 
 	if (magic_load(magic, NULL) != 0) {
-		fprintf(stderr, "%s: cannot load magic database: %s\n", program, magic_error(magic));
+		fprintf(stderr, "%s: Could not load magic database: %s\n", program, magic_error(magic));
 		magic_close(magic);
 		goto out30;
 	}
@@ -361,7 +361,7 @@ int main(int argc, char ** argv) {
 	}
 
 	if (notify_init(PROGNAME) == FALSE) {
-		fprintf(stderr, "%s: Can't create notify.\n", program);
+		fprintf(stderr, "%s: Could not initialize notify.\n", program);
 		goto out20;
 	}
 
@@ -474,7 +474,7 @@ int main(int argc, char ** argv) {
 				usleep(500 * 1000);
 
 				if(notify_init(PROGNAME) == FALSE) {
-					fprintf(stderr, "%s: Can't create notify.\n", program);
+					fprintf(stderr, "%s: Could not initialize notify.\n", program);
 					goto out10;
 				}
 			}
