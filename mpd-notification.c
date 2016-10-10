@@ -79,7 +79,11 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	GdkPixbufLoader * loader;
 
 	/* try album artwork first */
-	uri_path = malloc(strlen(music_dir) + strlen(uri) + 2);
+	if ((uri_path = malloc(strlen(music_dir) + strlen(uri) + 2)) == NULL) {
+		fprintf(stderr, "%s: malloc() failed.\n", program);
+		goto fail;
+	}
+
 	sprintf(uri_path, "%s/%s", music_dir, uri);
 
 	if ((magic_mime = magic_file(magic, uri_path)) == NULL) {
@@ -93,7 +97,10 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	if (strcmp(magic_mime, "audio/mpeg") != 0)
 		goto image;
 
-	pFormatCtx = avformat_alloc_context();
+	if ((pFormatCtx = avformat_alloc_context()) == NULL) {
+		fprintf(stderr, "%s: avformat_alloc_context() failed.\n", program);
+		goto image;
+	}
 
 	if (avformat_open_input(&pFormatCtx, uri_path, NULL, NULL) != 0) {
 		fprintf(stderr, "%s: avformat_open_input() failed", program);
@@ -116,8 +123,15 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 			pkt = pFormatCtx->streams[i]->attached_pic;
 
 			loader = gdk_pixbuf_loader_new();
-			gdk_pixbuf_loader_write(loader, pkt.data, pkt.size, NULL);
-			pixbuf = gdk_pixbuf_loader_get_pixbuf(loader);
+			if (gdk_pixbuf_loader_write(loader, pkt.data, pkt.size, NULL) == FALSE) {
+				fprintf(stderr, "%s: gdk_pixbuf_loader_write() failed parsing file.\n", program);
+				goto image;
+			}
+
+			if ((pixbuf = gdk_pixbuf_loader_get_pixbuf(loader)) == NULL) {
+				fprintf(stderr, "%s: gdk_pixbuf_loader_get_pixbuf() failed creating pixbuf.\n", program);
+				goto image;
+			}
 
 			gdk_pixbuf_loader_close(loader, NULL);
 			goto done;
@@ -148,9 +162,19 @@ image:
 			if (verbose > 0)
 				printf("%s: Found image file: %s\n", program, entry->d_name);
 
-			imagefile = malloc(strlen(uri_path) + strlen(entry->d_name) + 2);
+			if ((imagefile = malloc(strlen(uri_path) + strlen(entry->d_name) + 2)) == NULL) {
+				fprintf(stderr, "%s: malloc() failed.\n", program);
+				goto fail;
+			}
+
 			sprintf(imagefile, "%s/%s", uri_path, entry->d_name);
-			pixbuf = gdk_pixbuf_new_from_file(imagefile, NULL);
+
+			if ((pixbuf = gdk_pixbuf_new_from_file(imagefile, NULL)) == NULL) {
+				fprintf(stderr, "%s: gdk_pixbuf_new_from_file() failed loading file: %s\n",
+						program, imagefile);
+				goto fail;
+			}
+
 			free(imagefile);
 			break;
 		}
