@@ -25,7 +25,7 @@ LDFLAGS	+= -Wl,-z,now -Wl,-z,relro -pie
 
 # this is just a fallback in case you do not use git but downloaded
 # a release tarball...
-VERSION := 0.8.0
+VERSION := 0.8.1
 
 all: mpd-notification README.html
 
