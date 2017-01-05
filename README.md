@@ -20,6 +20,7 @@ Requirements
 
 To compile and run `mpd-notification` you need:
 
+* [systemd](https://www.github.com/systemd/systemd)
 * [file](http://www.darwinsys.com/file/) for `libmagic`
 * [iniparser](http://ndevilla.free.fr/iniparser/)
 * [libav](https://libav.org/) or [ffmpeg](https://www.ffmpeg.org/)
