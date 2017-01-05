@@ -400,6 +400,8 @@ int main(int argc, char ** argv) {
 			if (title == NULL)
 				goto nonotification;
 
+			sd_notifyf(0, "READY=1\nSTATUS=Playing: %s", title);
+
 			/* initial allocation and string termination */
 			notifystr = strdup("");
 
@@ -437,11 +439,13 @@ int main(int argc, char ** argv) {
 			}
 
 			mpd_song_free(song);
-		} else if (state == MPD_STATE_PAUSE)
+		} else if (state == MPD_STATE_PAUSE) {
 			notifystr = strdup(TEXT_PAUSE);
-		else if (state == MPD_STATE_STOP)
+			sd_notify(0, "READY=1\nSTATUS=" TEXT_PAUSE);
+		} else if (state == MPD_STATE_STOP) {
 			notifystr = strdup(TEXT_STOP);
-		else
+			sd_notify(0, "READY=1\nSTATUS=" TEXT_STOP);
+		} else
 			notifystr = strdup(TEXT_UNKNOWN);
 
 		if (verbose > 0)
