@@ -18,6 +18,9 @@
 #include <string.h>
 #include <unistd.h>
 
+/* systemd headers */
+#include <systemd/sd-daemon.h>
+
 #include <iniparser.h>
 #include <libnotify/notify.h>
 #include <mpd/client.h>

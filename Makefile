@@ -10,6 +10,7 @@ RM	:= rm
 # flags
 CFLAGS	+= -std=c11 -O2 -fPIC -Wall -Werror
 CFLAGS	+= -liniparser
+CFLAGS	+= $(shell pkg-config --cflags --libs libsystemd)
 CFLAGS	+= $(shell pkg-config --cflags --libs libmpdclient)
 CFLAGS	+= $(shell pkg-config --cflags --libs libnotify)
 LIBAV_CFLAGS := $(shell pkg-config --cflags --libs libavformat libavutil 2>/dev/null)

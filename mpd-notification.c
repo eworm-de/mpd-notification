@@ -379,6 +379,9 @@ int main(int argc, char ** argv) {
 	signal(SIGTERM, received_signal);
 	signal(SIGUSR1, received_signal);
 
+	/* report ready to systemd */
+	sd_notify(0, "READY=1\nSTATUS=Waiting for mpd event...");
+
 	while (doexit == 0 && mpd_run_idle_mask(conn, MPD_IDLE_PLAYER)) {
 		mpd_command_list_begin(conn, true);
 		mpd_send_status(conn);
