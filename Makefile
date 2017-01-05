@@ -13,9 +13,9 @@ CFLAGS	+= -liniparser
 CFLAGS	+= $(shell pkg-config --cflags --libs libsystemd)
 CFLAGS	+= $(shell pkg-config --cflags --libs libmpdclient)
 CFLAGS	+= $(shell pkg-config --cflags --libs libnotify)
-LIBAV_CFLAGS := $(shell pkg-config --cflags --libs libavformat libavutil 2>/dev/null)
-ifneq ($(LIBAV_CFLAGS),)
-CFLAGS	+= -DHAVE_LIBAV $(LIBAV_CFLAGS)
+CFLAGS_LIBAV := $(shell pkg-config --cflags --libs libavformat libavutil 2>/dev/null)
+ifneq ($(CFLAGS_LIBAV),)
+CFLAGS	+= -DHAVE_LIBAV $(CFLAGS_LIBAV)
 CFLAGS	+= -lmagic
 endif
 LDFLAGS	+= -Wl,-z,now -Wl,-z,relro -pie
