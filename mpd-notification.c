@@ -380,7 +380,9 @@ int main(int argc, char ** argv) {
 	signal(SIGUSR1, received_signal);
 
 	/* report ready to systemd */
+#ifdef HAVE_SYSTEMD
 	sd_notify(0, "READY=1\nSTATUS=Waiting for mpd event...");
+#endif
 
 	while (doexit == 0 && mpd_run_idle_mask(conn, MPD_IDLE_PLAYER)) {
 		mpd_command_list_begin(conn, true);
@@ -400,7 +402,9 @@ int main(int argc, char ** argv) {
 			if (title == NULL)
 				goto nonotification;
 
+#ifdef HAVE_SYSTEMD
 			sd_notifyf(0, "READY=1\nSTATUS=Playing: %s", title);
+#endif
 
 			/* initial allocation and string termination */
 			notifystr = strdup("");
@@ -441,10 +445,14 @@ int main(int argc, char ** argv) {
 			mpd_song_free(song);
 		} else if (state == MPD_STATE_PAUSE) {
 			notifystr = strdup(TEXT_PAUSE);
+#ifdef HAVE_SYSTEMD
 			sd_notify(0, "READY=1\nSTATUS=" TEXT_PAUSE);
+#endif
 		} else if (state == MPD_STATE_STOP) {
 			notifystr = strdup(TEXT_STOP);
+#ifdef HAVE_SYSTEMD
 			sd_notify(0, "READY=1\nSTATUS=" TEXT_STOP);
+#endif
 		} else
 			notifystr = strdup(TEXT_UNKNOWN);
 

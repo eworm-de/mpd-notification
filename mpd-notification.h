@@ -19,7 +19,9 @@
 #include <unistd.h>
 
 /* systemd headers */
+#ifdef HAVE_SYSTEMD
 #include <systemd/sd-daemon.h>
+#endif
 
 #include <iniparser.h>
 #include <libnotify/notify.h>
