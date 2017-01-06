@@ -511,6 +511,11 @@ nonotification:
 	if (verbose > 0)
 		printf("%s: Exiting...\n", program);
 
+	/* report stopping to systemd */
+#ifdef HAVE_SYSTEMD
+	sd_notify(0, "STOPPING=1\nSTATUS=Stopping...");
+#endif
+
 	rc = EXIT_SUCCESS;
 
 out10:
@@ -530,6 +535,10 @@ out40:
 
 	if (ini != NULL)
 		iniparser_freedict(ini);
+
+#ifdef HAVE_SYSTEMD
+	sd_notify(0, "STATUS=Stopped. Bye!");
+#endif
 
 	return rc;
 }
