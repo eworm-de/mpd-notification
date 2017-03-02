@@ -328,10 +328,6 @@ int main(int argc, char ** argv) {
 		}
 	}
 
-	/* disable artwork stuff if we are connected to a foreign host */
-	if (mpd_host != NULL && mpd_host[0] != '/')
-		music_dir = NULL;
-
 	/* change directory to music base directory */
 	if (music_dir != NULL) {
 		if (chdir(music_dir) == -1) {
