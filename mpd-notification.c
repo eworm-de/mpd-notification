@@ -281,7 +281,14 @@ int main(int argc, char ** argv) {
 
 	/* say hello */
 	if (verbose > 0)
-		printf("%s: %s v%s (compiled: " __DATE__ ", " __TIME__ ")\n", program, PROGNAME, VERSION);
+		printf("%s: %s v%s"
+#ifdef HAVE_SYSTEMD
+			" +systemd"
+#endif
+#ifdef HAVE_LIBAV
+			" +libav"
+#endif
+			" (compiled: " __DATE__ ", " __TIME__ ")\n", program, PROGNAME, VERSION);
 
 	if (help > 0)
 		fprintf(stderr, "usage: %s [-h] [-H HOST] [-m MUSIC-DIR] [-o] [-p PORT] [-s PIXELS] [-t TIMEOUT] [-v] [-V]\n", program);
