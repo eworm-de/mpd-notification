@@ -9,7 +9,7 @@
 #define _CONFIG_H
 
 /* how long to display notifications */
-#define NOTIFICATION_TIMEOUT	10000
+#define NOTIFICATION_TIMEOUT	10
 
 /* name of the icon used for notifications */
 #define ICON_AUDIO_X_GENERIC	"audio-x-generic"

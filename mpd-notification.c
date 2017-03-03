@@ -318,7 +318,7 @@ int main(int argc, char ** argv) {
 				scale = atof(optarg);
 				break;
 			case 't':
-				notification_timeout = atof(optarg) * 1000;
+				notification_timeout = atof(optarg);
 				if (verbose > 0)
 					printf("%s: using notification-timeout %d\n", program, notification_timeout);
 				break;
@@ -356,7 +356,7 @@ int main(int argc, char ** argv) {
 	}
 #endif
 
-	conn = mpd_connection_new(mpd_host, mpd_port, mpd_timeout);
+	conn = mpd_connection_new(mpd_host, mpd_port, mpd_timeout * 1000);
 
 	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
 		fprintf(stderr,"%s: %s\n", program, mpd_connection_get_error_message(conn));
@@ -474,7 +474,7 @@ int main(int argc, char ** argv) {
 		/* Call this unconditionally! When pixbuf is NULL this clears old image. */
 		notify_notification_set_image_from_pixbuf(notification, pixbuf);
 
-		notify_notification_set_timeout(notification, notification_timeout);
+		notify_notification_set_timeout(notification, notification_timeout * 1000);
 
 		while(notify_notification_show(notification, &error) == FALSE) {
 			if (errcount > 1) {
