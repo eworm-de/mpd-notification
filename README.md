@@ -103,4 +103,4 @@ in the same directory as the media file and named `cover.jpg`,
 ### Upstream
 
 URL: [GitHub.com](https://github.com/eworm-de/mpd-notification)  
-Mirror: [eworm.de](http://git.eworm.de/cgit.cgi/mpd-notification/)
+Mirror: [eworm.de](https://git.eworm.de/cgit.cgi/mpd-notification/)
