@@ -427,7 +427,7 @@ int main(int argc, char ** argv) {
 
 				pixbuf = retrieve_artwork(music_dir, uri);
 
-				if (scale > 0) {
+				if (pixbuf != NULL && scale > 0) {
 					int x, y;
 
 					x = gdk_pixbuf_get_width(pixbuf);
