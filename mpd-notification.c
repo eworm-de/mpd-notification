@@ -464,6 +464,8 @@ int main(int argc, char ** argv) {
 		if (verbose > 0)
 			printf("%s: %s\n", program, notifystr);
 
+		notify_notification_clear_hints(notification);
+
 		/* Some notification daemons do not support handing pixbuf data. Write a PNG
 		 * file and give the path. */
 		if (file_workaround > 0 && pixbuf != NULL) {
