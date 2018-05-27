@@ -396,11 +396,12 @@ int main(int argc, char ** argv) {
 		mpd_command_list_end(conn);
 
 		state = mpd_status_get_state(mpd_recv_status(conn));
+
+		mpd_response_next(conn);
+
+		song = mpd_recv_song(conn);
+
 		if (state == MPD_STATE_PLAY) {
-			mpd_response_next(conn);
-
-			song = mpd_recv_song(conn);
-
 			title = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
 
 			/* ignore if we have no title */
@@ -422,6 +423,23 @@ int main(int argc, char ** argv) {
 			if ((album = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)) != NULL)
 				notifystr = append_string(notifystr, TEXT_PLAY_ALBUM, oneline ? ' ' : '\n', album);
 
+		} else if (state == MPD_STATE_PAUSE) {
+			notifystr = strdup(TEXT_PAUSE);
+#ifdef HAVE_SYSTEMD
+			sd_notify(0, "READY=1\nSTATUS=" TEXT_PAUSE);
+#endif
+		} else if (state == MPD_STATE_STOP) {
+			notifystr = strdup(TEXT_STOP);
+#ifdef HAVE_SYSTEMD
+			sd_notify(0, "READY=1\nSTATUS=" TEXT_STOP);
+#endif
+		} else
+			notifystr = strdup(TEXT_UNKNOWN);
+
+		if (verbose > 0)
+			printf("%s: %s\n", program, notifystr);
+
+		if (song != NULL) {
 			uri = mpd_song_get_uri(song);
 
 			if (music_dir != NULL && uri != NULL) {
@@ -443,26 +461,10 @@ int main(int argc, char ** argv) {
 						pixbuf = copy;
 					}
 				}
-
-
 			}
 
 			mpd_song_free(song);
-		} else if (state == MPD_STATE_PAUSE) {
-			notifystr = strdup(TEXT_PAUSE);
-#ifdef HAVE_SYSTEMD
-			sd_notify(0, "READY=1\nSTATUS=" TEXT_PAUSE);
-#endif
-		} else if (state == MPD_STATE_STOP) {
-			notifystr = strdup(TEXT_STOP);
-#ifdef HAVE_SYSTEMD
-			sd_notify(0, "READY=1\nSTATUS=" TEXT_STOP);
-#endif
-		} else
-			notifystr = strdup(TEXT_UNKNOWN);
-
-		if (verbose > 0)
-			printf("%s: %s\n", program, notifystr);
+		}
 
 		notify_notification_clear_hints(notification);
 
