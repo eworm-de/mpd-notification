@@ -377,7 +377,8 @@ int main(int argc, char ** argv) {
 		notify_notification_new(TEXT_TOPIC, TEXT_NONE, ICON_AUDIO_X_GENERIC, NULL);
 #		endif
 	notify_notification_set_category(notification, PROGNAME);
-	notify_notification_set_urgency (notification, NOTIFY_URGENCY_NORMAL);
+	notify_notification_set_urgency(notification, NOTIFY_URGENCY_NORMAL);
+	notify_notification_set_timeout(notification, notification_timeout * 1000);
 
 	signal(SIGHUP, received_signal);
 	signal(SIGINT, received_signal);
@@ -475,8 +476,6 @@ int main(int argc, char ** argv) {
 
 		/* Call this unconditionally! When pixbuf is NULL this clears old image. */
 		notify_notification_set_image_from_pixbuf(notification, pixbuf);
-
-		notify_notification_set_timeout(notification, notification_timeout * 1000);
 
 		while(notify_notification_show(notification, &error) == FALSE) {
 			if (errcount > 1) {
