@@ -226,7 +226,8 @@ int main(int argc, char ** argv) {
 	char * notifystr = NULL;
 	GdkPixbuf * pixbuf = NULL;
 	GError * error = NULL;
-	unsigned short int errcount = 0, state = MPD_STATE_UNKNOWN;
+	unsigned short int errcount = 0;
+	enum mpd_state state = MPD_STATE_UNKNOWN;
 	const char * mpd_host, * mpd_port_str, * music_dir, * uri = NULL;
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
 	struct mpd_song * song = NULL;
