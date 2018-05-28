@@ -227,7 +227,7 @@ int main(int argc, char ** argv) {
 	GdkPixbuf * pixbuf = NULL;
 	GError * error = NULL;
 	unsigned short int errcount = 0;
-	enum mpd_state state = MPD_STATE_UNKNOWN;
+	enum mpd_state state = MPD_STATE_UNKNOWN, last_state = MPD_STATE_UNKNOWN;
 	const char * mpd_host, * mpd_port_str, * music_dir, * uri = NULL;
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
 	struct mpd_song * song = NULL;
@@ -399,6 +399,14 @@ int main(int argc, char ** argv) {
 
 		state = mpd_status_get_state(mpd_recv_status(conn));
 		if (state == MPD_STATE_PLAY) {
+			/* There's a bug in libnotify where the server spec version is fetched
+			 * too late, which results in issue with image date. Make sure to
+			 * show a notification without image data (just generic icon) first. */
+			if (last_state != MPD_STATE_PLAY) {
+				notify_notification_update(notification, TEXT_TOPIC, "Starting playback...", ICON_AUDIO_X_GENERIC);
+				notify_notification_show(notification, NULL);
+			}
+
 			mpd_response_next(conn);
 
 			song = mpd_recv_song(conn);
@@ -462,6 +470,8 @@ int main(int argc, char ** argv) {
 #endif
 		} else
 			notifystr = strdup(TEXT_UNKNOWN);
+
+		last_state = state;
 
 		if (verbose > 0)
 			printf("%s: %s\n", program, notifystr);
