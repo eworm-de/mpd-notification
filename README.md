@@ -27,7 +27,8 @@ To compile and run `mpd-notification` you need:
 * [libnotify](http://library.gnome.org/devel/notification-spec/)
 * [libmpdclient](http://www.musicpd.org/libs/libmpdclient/)
 * [markdown](http://daringfireball.net/projects/markdown/) (HTML documentation)
-* `gnome-icon-theme` (or anything else that includes an icon named `audio-x-generic`)
+* `gnome-icon-theme` or `adwaita-icon-theme` (or anything else that includes
+  an icon named `audio-x-generic`)
 
 To use `mpd-notification` you probably want `mpd`, the
 [music player daemon](http://www.musicpd.org/) itself. ;)
