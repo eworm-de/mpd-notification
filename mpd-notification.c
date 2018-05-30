@@ -398,7 +398,7 @@ int main(int argc, char ** argv) {
 		mpd_command_list_end(conn);
 
 		state = mpd_status_get_state(mpd_recv_status(conn));
-		if (state == MPD_STATE_PLAY) {
+		if (state == MPD_STATE_PLAY || state == MPD_STATE_PAUSE) {
 			/* There's a bug in libnotify where the server spec version is fetched
 			 * too late, which results in issue with image date. Make sure to
 			 * show a notification without image data (just generic icon) first. */
@@ -418,19 +418,19 @@ int main(int argc, char ** argv) {
 				goto nonotification;
 
 #ifdef HAVE_SYSTEMD
-			sd_notifyf(0, "READY=1\nSTATUS=Playing: %s", title);
+			sd_notifyf(0, "READY=1\nSTATUS=%s: %s", state == MPD_STATE_PLAY ? "Playing" : "Paused", title);
 #endif
 
 			/* initial allocation and string termination */
 			notifystr = strdup("");
-
-			notifystr = append_string(notifystr, TEXT_PLAY_TITLE, 0, title);
+			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_STATE, 0, state == MPD_STATE_PLAY ? "Playing": "Paused");
+			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_TITLE, 0, title);
 
 			if ((artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)) != NULL)
-				notifystr = append_string(notifystr, TEXT_PLAY_ARTIST, oneline ? ' ' : '\n', artist);
+				notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ARTIST, oneline ? ' ' : '\n', artist);
 
 			if ((album = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)) != NULL)
-				notifystr = append_string(notifystr, TEXT_PLAY_ALBUM, oneline ? ' ' : '\n', album);
+				notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ALBUM, oneline ? ' ' : '\n', album);
 
 			uri = mpd_song_get_uri(song);
 
@@ -458,11 +458,6 @@ int main(int argc, char ** argv) {
 			}
 
 			mpd_song_free(song);
-		} else if (state == MPD_STATE_PAUSE) {
-			notifystr = strdup(TEXT_PAUSE);
-#ifdef HAVE_SYSTEMD
-			sd_notify(0, "READY=1\nSTATUS=" TEXT_PAUSE);
-#endif
 		} else if (state == MPD_STATE_STOP) {
 			notifystr = strdup(TEXT_STOP);
 #ifdef HAVE_SYSTEMD

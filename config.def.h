@@ -17,10 +17,10 @@
 /* strings used to display notification messages
  * TEXT_PLAY_* need to include one string modifier '%s' each. */
 #define TEXT_TOPIC		"MPD Notification"
-#define TEXT_PLAY_TITLE		"Playing <b>%s</b>"
-#define TEXT_PLAY_ARTIST	"by <i>%s</i>"
-#define TEXT_PLAY_ALBUM		"from <i>%s</i>"
-#define TEXT_PAUSE		"Paused playback"
+#define TEXT_PLAY_PAUSE_STATE	"%s "
+#define TEXT_PLAY_PAUSE_TITLE	"<b>%s</b>"
+#define TEXT_PLAY_PAUSE_ARTIST	"by <i>%s</i>"
+#define TEXT_PLAY_PAUSE_ALBUM	"from <i>%s</i>"
 #define TEXT_STOP		"Stopped playback"
 #define TEXT_NONE		"No action received yet."
 #define TEXT_UNKNOWN		"(unknown)"
