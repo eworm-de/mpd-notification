@@ -21,12 +21,12 @@ Requirements
 To compile and run `mpd-notification` you need:
 
 * [systemd](https://www.github.com/systemd/systemd)
-* [file](http://www.darwinsys.com/file/) for `libmagic`
-* [iniparser](http://ndevilla.free.fr/iniparser/)
+* [file](https://www.darwinsys.com/file/) for `libmagic`
+* [iniparser](https://github.com/ndevilla/iniparser)
 * [libav](https://libav.org/) or [ffmpeg](https://www.ffmpeg.org/)
-* [libnotify](http://library.gnome.org/devel/notification-spec/)
-* [libmpdclient](http://www.musicpd.org/libs/libmpdclient/)
-* [markdown](http://daringfireball.net/projects/markdown/) (HTML documentation)
+* [libnotify](https://developer.gnome.org/notification-spec/)
+* [libmpdclient](https://www.musicpd.org/libs/libmpdclient/)
+* [markdown](https://daringfireball.net/projects/markdown/) (HTML documentation)
 * `gnome-icon-theme` or `adwaita-icon-theme` (or anything else that includes
   an icon named `audio-x-generic`)
 
