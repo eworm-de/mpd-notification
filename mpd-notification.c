@@ -5,6 +5,10 @@
  * of the GNU General Public License, incorporated herein by reference.
  */
 
+//TODO: Factorize into other functions.
+//TODO: Rewrite in C++ ?
+//TODO: Create a clang-format file for the whole project.
+
 #include "mpd-notification.h"
 
 const static char optstring[] = "hH:m:op:s:t:vV";
@@ -223,11 +227,20 @@ char * append_string(char * string, const char * format, const char delim, const
 int main(int argc, char ** argv) {
 	dictionary * ini = NULL;
 	const char * title = NULL, * artist = NULL, * album = NULL;
+    long elapsed_time, total_time;
+    const char* time_ratio_format = "%s / %s"; //TODO: Make it a constant
+    const char* times_format = "%M:%S";
+    size_t TIMES_TEXT_SIZE = 32;
+    size_t TIMES_RATIO_TEXT_SIZE = 4 * TIMES_TEXT_SIZE;
+    char elapsed_time_text[TIMES_TEXT_SIZE];
+    char total_time_text[TIMES_TEXT_SIZE];
+    char time_ratio_text[TIMES_RATIO_TEXT_SIZE]; //TODO: Make it very long time proof
 	char * notifystr = NULL;
 	GdkPixbuf * pixbuf = NULL;
 	GError * error = NULL;
 	unsigned short int errcount = 0;
 	enum mpd_state state = MPD_STATE_UNKNOWN, last_state = MPD_STATE_UNKNOWN;
+    struct mpd_status* status;
 	const char * mpd_host, * mpd_port_str, * music_dir, * uri = NULL;
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
 	struct mpd_song * song = NULL;
@@ -397,8 +410,13 @@ int main(int argc, char ** argv) {
 		mpd_send_current_song(conn);
 		mpd_command_list_end(conn);
 
-		state = mpd_status_get_state(mpd_recv_status(conn));
+        status = mpd_recv_status(conn);
+		state = mpd_status_get_state(status);
 		if (state == MPD_STATE_PLAY || state == MPD_STATE_PAUSE) {
+
+            elapsed_time = mpd_status_get_elapsed_time(status);
+            total_time = mpd_status_get_total_time(status);
+
 			/* There's a bug in libnotify where the server spec version is fetched
 			 * too late, which results in issue with image date. Make sure to
 			 * show a notification without image data (just generic icon) first. */
@@ -423,11 +441,11 @@ int main(int argc, char ** argv) {
 
 			/* initial allocation and string termination */
 			notifystr = strdup("");
-			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_STATE, 0, state == MPD_STATE_PLAY ? "Playing": "Paused");
+			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_STATE, 0, state == MPD_STATE_PLAY ? "Playing": "Paused"); //TODO: Why do we need to reassign notifystr if it is modified inside append_string ?
 			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_TITLE, 0, title);
 
 			if ((artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)) != NULL)
-				notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ARTIST, oneline ? ' ' : '\n', artist);
+				notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ARTIST, oneline ? ' ' : '\n', artist); //TODO: append_string whith this ternary is used a lot, should factorize
 
 			if ((album = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)) != NULL)
 				notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ALBUM, oneline ? ' ' : '\n', album);
@@ -458,6 +476,12 @@ int main(int argc, char ** argv) {
 			}
 
 			mpd_song_free(song);
+
+            strftime(elapsed_time_text, TIMES_TEXT_SIZE, times_format, gmtime(&elapsed_time));
+            strftime(total_time_text, TIMES_TEXT_SIZE, times_format, gmtime(&total_time));
+            snprintf(time_ratio_text, TIMES_RATIO_TEXT_SIZE, time_ratio_format, elapsed_time_text, total_time_text);
+            notifystr = append_string(notifystr, "%s", oneline ? ' ' : '\n', time_ratio_text);
+
 		} else if (state == MPD_STATE_STOP) {
 			notifystr = strdup(TEXT_STOP);
 #ifdef HAVE_SYSTEMD
@@ -516,6 +540,8 @@ nonotification:
 			pixbuf = NULL;
 		}
 		mpd_response_finish(conn);
+        
+        mpd_status_free(status);
 	}
 
 	if (verbose > 0)
