@@ -64,5 +64,5 @@ distclean:
 
 release:
 	git archive --format=tar.xz --prefix=mpd-notification-$(VERSION)/ $(VERSION) > mpd-notification-$(VERSION).tar.xz
-	gpg -ab mpd-notification-$(VERSION).tar.xz
-	git notes --ref=refs/notes/signatures/tar add -C $$(git archive --format=tar --prefix=mpd-notification-$(VERSION)/ $(VERSION) | gpg --armor --detach-sign | git hash-object -w --stdin) $(VERSION)
+	gpg --armor --detach-sign --comment mpd-notification-$(VERSION).tar.xz mpd-notification-$(VERSION).tar.xz
+	git notes --ref=refs/notes/signatures/tar add -C $$(git archive --format=tar --prefix=mpd-notification-$(VERSION)/ $(VERSION) | gpg --armor --detach-sign --comment mpd-notification-$(VERSION).tar | git hash-object -w --stdin) $(VERSION)
