@@ -337,7 +337,6 @@ int update_notification(int show_elapsed_time)
 
             if (show_time)
             {
-                printf("Test\n");
                 strftime(total_time_text, TIMES_TEXT_SIZE, TIME_FORMAT, gmtime(&total_time));
                 if (show_elapsed_time)
                 {
