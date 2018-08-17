@@ -35,7 +35,7 @@ all: mpd-notification README.html
 mpd-notification: mpd-notification.c mpd-notification.h config.h version.h
 	$(CC) $(CFLAGS) $(LDFLAGS) -o mpd-notification mpd-notification.c
 
-config.h:
+config.h: config.def.h
 	$(CP) config.def.h config.h
 
 version.h: $(wildcard .git/HEAD .git/index .git/refs/tags/*) Makefile
