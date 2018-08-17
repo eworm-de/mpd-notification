@@ -252,6 +252,7 @@ int update_notification(int show_elapsed_time)
 
 	char * notifystr = NULL;
 	GdkPixbuf * pixbuf = NULL;
+    int nonotification = 0;
 
     mpd_command_list_begin(conn, true);
     mpd_send_status(conn);
@@ -280,9 +281,12 @@ int update_notification(int show_elapsed_time)
         title = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
 
         /* ignore if we have no title */
-        if (title != NULL)
+        if (title == NULL)
         {
-
+            nonotification = 0;
+        }
+        else
+        {
 #ifdef HAVE_SYSTEMD
             sd_notifyf(0, "READY=1\nSTATUS=%s: %s", state == MPD_STATE_PLAY ? "Playing" : "Paused", title);
 #endif
@@ -327,7 +331,6 @@ int update_notification(int show_elapsed_time)
 
             if (show_time)
             {
-                printf("Test\n");
                 strftime(total_time_text, TIMES_TEXT_SIZE, TIME_FORMAT, gmtime(&total_time));
                 if (show_elapsed_time)
                 {
@@ -340,46 +343,46 @@ int update_notification(int show_elapsed_time)
                     notifystr = append_string(notifystr, TEXT_TOTAL_TIME, oneline ? ' ' : '\n', total_time_text);
                 }
             }
+        }
 
-        } else if (state == MPD_STATE_STOP) {
-            notifystr = strdup(TEXT_STOP);
+    } else if (state == MPD_STATE_STOP) {
+        notifystr = strdup(TEXT_STOP);
 #ifdef HAVE_SYSTEMD
-            sd_notify(0, "READY=1\nSTATUS=" TEXT_STOP);
+        sd_notify(0, "READY=1\nSTATUS=" TEXT_STOP);
 #endif
-        } else
-            notifystr = strdup(TEXT_UNKNOWN);
+    } else
+        notifystr = strdup(TEXT_UNKNOWN);
 
-        last_state = state;
+    last_state = state;
 
-        if (verbose > 0)
-            printf("%s: %s\n", program, notifystr);
+    if (verbose > 0)
+        printf("%s: %s\n", program, notifystr);
 
-        /* Some notification daemons do not support handing pixbuf data. Write a PNG
-         * file and give the path. */
-        if (file_workaround > 0 && pixbuf != NULL) {
-            gdk_pixbuf_save(pixbuf, "/tmp/.mpd-notification-artwork.png", "png", NULL, NULL);
+    /* Some notification daemons do not support handing pixbuf data. Write a PNG
+     * file and give the path. */
+    if (file_workaround > 0 && pixbuf != NULL) {
+        gdk_pixbuf_save(pixbuf, "/tmp/.mpd-notification-artwork.png", "png", NULL, NULL);
 
-            notify_notification_update(notification, TEXT_TOPIC, notifystr, "/tmp/.mpd-notification-artwork.png");
-        } else
-            notify_notification_update(notification, TEXT_TOPIC, notifystr, ICON_AUDIO_X_GENERIC);
+        notify_notification_update(notification, TEXT_TOPIC, notifystr, "/tmp/.mpd-notification-artwork.png");
+    } else
+        notify_notification_update(notification, TEXT_TOPIC, notifystr, ICON_AUDIO_X_GENERIC);
 
-        /* Call this unconditionally! When pixbuf is NULL this clears old image. */
-        notify_notification_set_image_from_pixbuf(notification, pixbuf);
+    /* Call this unconditionally! When pixbuf is NULL this clears old image. */
+    notify_notification_set_image_from_pixbuf(notification, pixbuf);
 
-        if (notifystr != NULL) {
-            free(notifystr);
-            notifystr = NULL;
-        }
-        if (pixbuf != NULL) {
-            g_object_unref(pixbuf);
-            pixbuf = NULL;
-        }
+    if (notifystr != NULL) {
+        free(notifystr);
+        notifystr = NULL;
+    }
+    if (pixbuf != NULL) {
+        g_object_unref(pixbuf);
+        pixbuf = NULL;
     }
 
     mpd_status_free(status);
     mpd_response_finish(conn);
 
-    return (title != NULL); //TODO: Find a more explicit but still efficient way to return the state. It might be necessary to factorize more code.
+    return !nonotification; //TODO: Find a more explicit but still efficient way to return the state. It might be necessary to factorize more code.
 }
 
 /*** main ***/
