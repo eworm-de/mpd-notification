@@ -5,10 +5,6 @@
  * of the GNU General Public License, incorporated herein by reference.
  */
 
-//TODO: Factorize into other functions.
-//TODO: Rewrite in C++ ?
-//TODO: Create a clang-format file for the whole project.
-
 #include "mpd-notification.h"
 
 const static char optstring[] = "hH:m:op:s:t:vV";
@@ -236,8 +232,6 @@ char * append_string(char * string, const char * format, const char delim, const
 	return string;
 }
 
-//TODO: This should not be called before the variable scale, file_workaround and music_dir
-//have been sets. Change the code so that the user do not worry about that.
 int update_notification(int show_elapsed_time)
 {
 	static enum mpd_state last_state = MPD_STATE_UNKNOWN;
@@ -295,11 +289,11 @@ int update_notification(int show_elapsed_time)
 
             /* initial allocation and string termination */
             notifystr = strdup("");
-            notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_STATE, 0, state == MPD_STATE_PLAY ? "Playing": "Paused"); //TODO: Why do we need to reassign notifystr if it is modified inside append_string ?
+            notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_STATE, 0, state == MPD_STATE_PLAY ? "Playing": "Paused");
             notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_TITLE, 0, title);
 
             if ((artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)) != NULL)
-                notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ARTIST, oneline ? ' ' : '\n', artist); //TODO: append_string whith this ternary is used a lot, should factorize
+                notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ARTIST, oneline ? ' ' : '\n', artist);
 
             if ((album = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)) != NULL)
                 notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ALBUM, oneline ? ' ' : '\n', album);
