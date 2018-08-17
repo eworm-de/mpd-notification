@@ -382,7 +382,7 @@ int update_notification(int show_elapsed_time)
     mpd_status_free(status);
     mpd_response_finish(conn);
 
-    return !nonotification; //TODO: Find a more explicit but still efficient way to return the state. It might be necessary to factorize more code.
+    return !nonotification;
 }
 
 /*** main ***/
