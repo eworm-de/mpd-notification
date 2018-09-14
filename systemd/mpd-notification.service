@@ -6,6 +6,7 @@ Description=MPD Notification
 # available on start and mpd-notification can cleanly disconnect on
 # system shutdown.
 After=mpd.service network.target network-online.target
+ConditionUser=!@system
 
 [Service]
 Type=notify
