@@ -77,7 +77,8 @@ Configuration
 -------------
 
 Configuration options can be read from a configuration file. `mpd`
-tries to read `~/.config/mpd-notification.conf`, which is expected to
+tries to read `${XDG_CONFIG_HOME}/mpd-notification.conf`, then 
+`~/.config/mpd-notification.conf`, which is expected to
 look like this:
 
     host = localhost
