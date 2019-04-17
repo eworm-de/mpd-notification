@@ -257,8 +257,12 @@ int main(int argc, char ** argv) {
 	music_dir = getenv("XDG_MUSIC_DIR");
 
 	/* parse config file */
-	if (chdir(getenv("HOME")) == 0 && access(".config/mpd-notification.conf", R_OK) == 0 &&
-			(ini = iniparser_load(".config/mpd-notification.conf")) != NULL) {
+	if (chdir(getenv("XDG_CONFIG_HOME")) == 0 && access("mpd-notification.conf", R_OK) == 0) {
+		ini = iniparser_load("mpd-notification.conf");
+	} else if (chdir(getenv("HOME")) == 0 && access(".config/mpd-notification.conf", R_OK) == 0) {
+		ini = iniparser_load(".config/mpd-notification.conf");
+	}
+	if (ini != NULL) {
 		file_workaround = iniparser_getboolean(ini, ":notification-file-workaround", file_workaround);
 		mpd_host = iniparser_getstring(ini, ":host", mpd_host);
 		mpd_port = iniparser_getint(ini, ":port", mpd_port);
