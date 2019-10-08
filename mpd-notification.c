@@ -484,7 +484,7 @@ int main(int argc, char ** argv) {
 		notify_notification_set_image_from_pixbuf(notification, pixbuf);
 
 		while(notify_notification_show(notification, &error) == FALSE) {
-			if (errcount > 1) {
+			if (errcount > 1 || doexit) {
 				fprintf(stderr, "%s: Looks like we can not reconnect to notification daemon... Exiting.\n", program);
 				goto out10;
 			} else {
