@@ -226,7 +226,6 @@ int main(int argc, char ** argv) {
 	char * notifystr = NULL;
 	GdkPixbuf * pixbuf = NULL;
 	GError * error = NULL;
-	unsigned short int errcount = 0;
 	enum mpd_state state = MPD_STATE_UNKNOWN, last_state = MPD_STATE_UNKNOWN;
 	const char * mpd_host, * mpd_port_str, * music_dir, * uri = NULL;
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
@@ -484,27 +483,11 @@ int main(int argc, char ** argv) {
 		notify_notification_set_image_from_pixbuf(notification, pixbuf);
 
 		while(notify_notification_show(notification, &error) == FALSE) {
-			if (errcount > 1 || doexit) {
-				fprintf(stderr, "%s: Looks like we can not reconnect to notification daemon... Exiting.\n", program);
-				goto out10;
-			} else {
-				g_printerr("%s: Error \"%s\" while trying to show notification. Trying to reconnect.\n", program, error->message);
-				errcount++;
+			g_printerr("%s: Error showing notification: %s\n", program, error->message);
+			g_error_free(error);
 
-				g_error_free(error);
-				error = NULL;
-
-				notify_uninit();
-
-				usleep(500 * 1000);
-
-				if(notify_init(PROGNAME) == FALSE) {
-					fprintf(stderr, "%s: Could not initialize notify.\n", program);
-					goto out10;
-				}
-			}
+			goto out10;
 		}
-		errcount = 0;
 
 nonotification:
 		if (notifystr != NULL) {
