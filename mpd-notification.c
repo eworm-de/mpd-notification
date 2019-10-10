@@ -482,7 +482,7 @@ int main(int argc, char ** argv) {
 		/* Call this unconditionally! When pixbuf is NULL this clears old image. */
 		notify_notification_set_image_from_pixbuf(notification, pixbuf);
 
-		while(notify_notification_show(notification, &error) == FALSE) {
+		if (notify_notification_show(notification, &error) == FALSE) {
 			g_printerr("%s: Error showing notification: %s\n", program, error->message);
 			g_error_free(error);
 
