@@ -1,5 +1,5 @@
 /*
- * (C) 2011-2018 by Christian Hesse <mail@eworm.de>
+ * (C) 2011-2020 by Christian Hesse <mail@eworm.de>
  *
  * This software may be used and distributed according to the terms
  * of the GNU General Public License, incorporated herein by reference.
@@ -389,7 +389,6 @@ int update_notification(int show_elapsed_time)
 int main(int argc, char ** argv) {
 	dictionary * ini = NULL;
 	GError * error = NULL;
-	unsigned short int errcount = 0;
 	const char * mpd_host, * mpd_port_str; 
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
 	unsigned int i, version = 0, help = 0;
@@ -560,28 +559,12 @@ int main(int argc, char ** argv) {
             continue;
         }
 
-		while(notify_notification_show(notification, &error) == FALSE) {
-			if (errcount > 1) {
-				fprintf(stderr, "%s: Looks like we can not reconnect to notification daemon... Exiting.\n", program);
-				goto out10;
-			} else {
-				g_printerr("%s: Error \"%s\" while trying to show notification. Trying to reconnect.\n", program, error->message);
-				errcount++;
+		if (notify_notification_show(notification, &error) == FALSE) {
+			g_printerr("%s: Error showing notification: %s\n", program, error->message);
+			g_error_free(error);
 
-				g_error_free(error);
-				error = NULL;
-
-				notify_uninit();
-
-				usleep(500 * 1000);
-
-				if(notify_init(PROGNAME) == FALSE) {
-					fprintf(stderr, "%s: Could not initialize notify.\n", program);
-					goto out10;
-				}
-			}
+			goto out10;
 		}
-		errcount = 0;
 	}
     printf("While quited\n");
 
