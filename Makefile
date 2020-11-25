@@ -33,7 +33,7 @@ VERSION := 0.8.5
 all: mpd-notification README.html
 
 mpd-notification: mpd-notification.c mpd-notification.h config.h version.h
-	$(CC) $(CFLAGS) $(LDFLAGS) -o mpd-notification mpd-notification.c
+	$(CC) mpd-notification.c $(CFLAGS) $(LDFLAGS) -o mpd-notification
 
 config.h:
 	$(CP) config.def.h config.h
