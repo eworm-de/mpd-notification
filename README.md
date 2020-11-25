@@ -101,6 +101,19 @@ files, otherwise an image file containing the artwork needs to be placed
 in the same directory as the media file and named `cover.jpg`,
 `cover.png`, `folder.jpg` or `folder.png`.
 
+License and warranty
+--------------------
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+[GNU General Public License](COPYING.md) for more details.
+
 ### Upstream
 
 URL:
