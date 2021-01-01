@@ -8,21 +8,21 @@ CP	:= cp
 RM	:= rm
 
 # flags
-CFLAGS	+= -std=c11 -O2 -fPIC -Wall -Werror
+CFLAGS_EXTRA	+= -std=c11 -O2 -fPIC -Wall -Werror
 ifneq ($(wildcard /usr/include/iniparser),)
-CFLAGS	+= -I/usr/include/iniparser
+CFLAGS_EXTRA	+= -I/usr/include/iniparser
 endif
-CFLAGS	+= -liniparser
-CFLAGS_SYSTEMD := $(shell pkg-config --cflags --libs libsystemd 2>/dev/null)
+CFLAGS_EXTRA	+= -liniparser
+CFLAGS_SYSTEMD	:= $(shell pkg-config --cflags --libs libsystemd 2>/dev/null)
 ifneq ($(CFLAGS_SYSTEMD),)
-CFLAGS	+= -DHAVE_SYSTEMD $(CFLAGS_SYSTEMD)
+CFLAGS_EXTRA	+= -DHAVE_SYSTEMD $(CFLAGS_SYSTEMD)
 endif
-CFLAGS	+= $(shell pkg-config --cflags --libs libmpdclient)
-CFLAGS	+= $(shell pkg-config --cflags --libs libnotify)
-CFLAGS_LIBAV := $(shell pkg-config --cflags --libs libavformat libavutil 2>/dev/null)
+CFLAGS_EXTRA	+= $(shell pkg-config --cflags --libs libmpdclient)
+CFLAGS_EXTRA	+= $(shell pkg-config --cflags --libs libnotify)
+CFLAGS_LIBAV	:= $(shell pkg-config --cflags --libs libavformat libavutil 2>/dev/null)
 ifneq ($(CFLAGS_LIBAV),)
-CFLAGS	+= -DHAVE_LIBAV $(CFLAGS_LIBAV)
-CFLAGS	+= -lmagic
+CFLAGS_EXTRA	+= -DHAVE_LIBAV $(CFLAGS_LIBAV)
+CFLAGS_EXTRA	+= -lmagic
 endif
 LDFLAGS	+= -Wl,-z,now -Wl,-z,relro -pie
 
@@ -33,7 +33,7 @@ VERSION := 0.8.5
 all: mpd-notification README.html
 
 mpd-notification: mpd-notification.c mpd-notification.h config.h version.h
-	$(CC) mpd-notification.c $(CFLAGS) $(LDFLAGS) -o mpd-notification
+	$(CC) mpd-notification.c $(CFLAGS) $(CFLAGS_EXTRA) $(LDFLAGS) -o mpd-notification
 
 config.h:
 	$(CP) config.def.h config.h
