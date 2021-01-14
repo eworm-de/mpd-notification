@@ -35,6 +35,22 @@
 #define TEXT_STOP		"Stopped playback"
 #define TEXT_NONE		"No action received yet."
 #define TEXT_UNKNOWN		"(unknown)"
+/**
+ * Define the format used when showing elapsed time in the notification.
+ * The first argument of the format is the elapsed time and the second
+ * is the total time of the song. You might want to use %<argument number>s
+ * to have the total time before the elapsed time in the resulting text.
+ */ 
+#define TEXT_TIME_RATIO "%1s / %2s"
+/**
+ * Define the format used when the total time is showned alone
+ */
+#define TEXT_TOTAL_TIME "%s"
+/**
+ * Define the format used to print a time in the notification. The syntax is
+ * the same as the one used by the function strftime.
+ */
+#define TIME_FORMAT "%M:%S"
 
 /* this is a regular expression that has to match image filename used
  * for artwork */

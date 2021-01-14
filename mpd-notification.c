@@ -45,6 +45,10 @@ uint8_t oneline = 0;
 #ifdef HAVE_LIBAV
 	magic_t magic = NULL;
 #endif
+const char * music_dir = NULL;
+unsigned int scale = 0;
+int file_workaround = 0;
+int show_time = 0;
 
 /*** received_signal ***/
 void received_signal(int signal) {
@@ -65,10 +69,19 @@ void received_signal(int signal) {
 			if (verbose > 0)
 				printf("%s: Received signal %s, showing last notification again.\n", program, strsignal(signal));
 
+            //Mpd is idle because of the main loop of this program. We
+            //need to stop idle mode to interact with it. The idle mode
+            //is recovered at the end of this block to let the main loop
+            //continue as usual.
+            mpd_send_noidle(conn);
+            mpd_recv_idle(conn, false);
+ 
+            update_notification(true);
 			if (notify_notification_show(notification, &error) == FALSE) {
 				g_printerr("%s: Error \"%s\" while trying to show notification again.\n", program, error->message);
 				g_error_free(error);
 			}
+            mpd_send_idle_mask(conn, MPD_IDLE_PLAYER);
 			break;
 		default:
 			fprintf(stderr, "%s: Reveived signal %s (%d), no idea what to do...\n", program, strsignal(signal), signal);
@@ -230,18 +243,166 @@ char * append_string(char * string, const char * format, const char delim, const
 	return string;
 }
 
+int update_notification(int show_elapsed_time)
+{
+	static enum mpd_state last_state = MPD_STATE_UNKNOWN;
+
+	const char * title = NULL, * artist = NULL, * album = NULL;
+
+    struct mpd_status* status;
+	enum mpd_state state = MPD_STATE_UNKNOWN;
+	struct mpd_song * song = NULL;
+    const char * song_uri = NULL;
+
+    long elapsed_time, total_time;
+    size_t TIMES_TEXT_SIZE = 32;
+    size_t TIMES_RATIO_TEXT_SIZE = 4 * TIMES_TEXT_SIZE;
+    char elapsed_time_text[TIMES_TEXT_SIZE];
+    char total_time_text[TIMES_TEXT_SIZE];
+    char time_ratio_text[TIMES_RATIO_TEXT_SIZE];
+
+	char * notifystr = NULL;
+	GdkPixbuf * pixbuf = NULL;
+    int nonotification = 0;
+
+    mpd_command_list_begin(conn, true);
+    mpd_send_status(conn);
+    mpd_send_current_song(conn);
+    mpd_command_list_end(conn);
+
+    status = mpd_recv_status(conn);
+    state = mpd_status_get_state(status);
+    if (state == MPD_STATE_PLAY || state == MPD_STATE_PAUSE) {
+
+        elapsed_time = mpd_status_get_elapsed_time(status);
+        total_time = mpd_status_get_total_time(status);
+
+        /* There's a bug in libnotify where the server spec version is fetched
+         * too late, which results in issue with image date. Make sure to
+         * show a notification without image data (just generic icon) first. */
+        if (last_state != MPD_STATE_PLAY) {
+            notify_notification_update(notification, TEXT_TOPIC, "Starting playback...", ICON_AUDIO_X_GENERIC);
+            notify_notification_show(notification, NULL);
+        }
+
+        mpd_response_next(conn);
+
+        song = mpd_recv_song(conn);
+
+        title = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
+
+        /* ignore if we have no title */
+        if (title == NULL)
+        {
+            nonotification = 0;
+        }
+        else
+        {
+#ifdef HAVE_SYSTEMD
+            sd_notifyf(0, "READY=1\nSTATUS=%s: %s", state == MPD_STATE_PLAY ? "Playing" : "Paused", title);
+#endif
+
+            /* initial allocation and string termination */
+            notifystr = strdup("");
+            notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_STATE, 0, state == MPD_STATE_PLAY ? "Playing": "Paused");
+            notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_TITLE, 0, title);
+
+            if ((artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)) != NULL)
+                notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ARTIST, oneline ? ' ' : '\n', artist);
+
+            if ((album = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)) != NULL)
+                notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ALBUM, oneline ? ' ' : '\n', album);
+
+            song_uri = mpd_song_get_uri(song);
+
+            if (music_dir != NULL && song_uri != NULL) {
+                GdkPixbuf * copy;
+
+                pixbuf = retrieve_artwork(music_dir, song_uri);
+
+                if (pixbuf != NULL && scale > 0) {
+                    int x, y;
+
+                    x = gdk_pixbuf_get_width(pixbuf);
+                    y = gdk_pixbuf_get_height(pixbuf);
+
+                    if ((copy = gdk_pixbuf_scale_simple (pixbuf,
+                            (x > y ? scale : scale * x / y),
+                            (y > x ? scale : scale * y / x),
+                            GDK_INTERP_BILINEAR)) != NULL) {
+                        g_object_unref(pixbuf);
+                        pixbuf = copy;
+                    }
+                }
+
+
+            }
+
+            mpd_song_free(song);
+
+            if (show_time)
+            {
+                strftime(total_time_text, TIMES_TEXT_SIZE, TIME_FORMAT, gmtime(&total_time));
+                if (show_elapsed_time)
+                {
+                    strftime(elapsed_time_text, TIMES_TEXT_SIZE, TIME_FORMAT, gmtime(&elapsed_time));
+                    snprintf(time_ratio_text, TIMES_RATIO_TEXT_SIZE, TEXT_TIME_RATIO, elapsed_time_text, total_time_text);
+                    notifystr = append_string(notifystr, "%s", oneline ? ' ' : '\n', time_ratio_text);
+                }
+                else
+                {
+                    notifystr = append_string(notifystr, TEXT_TOTAL_TIME, oneline ? ' ' : '\n', total_time_text);
+                }
+            }
+        }
+
+    } else if (state == MPD_STATE_STOP) {
+        notifystr = strdup(TEXT_STOP);
+#ifdef HAVE_SYSTEMD
+        sd_notify(0, "READY=1\nSTATUS=" TEXT_STOP);
+#endif
+    } else
+        notifystr = strdup(TEXT_UNKNOWN);
+
+    last_state = state;
+
+    if (verbose > 0)
+        printf("%s: %s\n", program, notifystr);
+
+    /* Some notification daemons do not support handing pixbuf data. Write a PNG
+     * file and give the path. */
+    if (file_workaround > 0 && pixbuf != NULL) {
+        gdk_pixbuf_save(pixbuf, "/tmp/.mpd-notification-artwork.png", "png", NULL, NULL);
+
+        notify_notification_update(notification, TEXT_TOPIC, notifystr, "/tmp/.mpd-notification-artwork.png");
+    } else
+        notify_notification_update(notification, TEXT_TOPIC, notifystr, ICON_AUDIO_X_GENERIC);
+
+    /* Call this unconditionally! When pixbuf is NULL this clears old image. */
+    notify_notification_set_image_from_pixbuf(notification, pixbuf);
+
+    if (notifystr != NULL) {
+        free(notifystr);
+        notifystr = NULL;
+    }
+    if (pixbuf != NULL) {
+        g_object_unref(pixbuf);
+        pixbuf = NULL;
+    }
+
+    mpd_status_free(status);
+    mpd_response_finish(conn);
+
+    return !nonotification;
+}
+
 /*** main ***/
 int main(int argc, char ** argv) {
 	dictionary * ini = NULL;
-	const char * title = NULL, * artist = NULL, * album = NULL;
-	char * notifystr = NULL;
-	GdkPixbuf * pixbuf = NULL;
 	GError * error = NULL;
-	enum mpd_state state = MPD_STATE_UNKNOWN, last_state = MPD_STATE_UNKNOWN;
-	const char * mpd_host, * mpd_port_str, * music_dir, * uri = NULL;
+	const char * mpd_host, * mpd_port_str; 
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
-	struct mpd_song * song = NULL;
-	unsigned int i, version = 0, help = 0, scale = 0, file_workaround = 0;
+	unsigned int i, version = 0, help = 0;
 	int rc = EXIT_FAILURE;
 
 	program = argv[0];
@@ -270,6 +431,7 @@ int main(int argc, char ** argv) {
 		notification_timeout = iniparser_getint(ini, ":timeout", notification_timeout);
 		oneline = iniparser_getboolean(ini, ":oneline", oneline);
 		scale = iniparser_getint(ini, ":scale", scale);
+        show_time = iniparser_getboolean(ini, ":show-time", show_time);
 	}
 
 	/* get the verbose status */
@@ -406,96 +568,11 @@ int main(int argc, char ** argv) {
 #endif
 
 	while (doexit == 0 && mpd_run_idle_mask(conn, MPD_IDLE_PLAYER)) {
-		mpd_command_list_begin(conn, true);
-		mpd_send_status(conn);
-		mpd_send_current_song(conn);
-		mpd_command_list_end(conn);
-
-		state = mpd_status_get_state(mpd_recv_status(conn));
-		if (state == MPD_STATE_PLAY || state == MPD_STATE_PAUSE) {
-			/* There's a bug in libnotify where the server spec version is fetched
-			 * too late, which results in issue with image date. Make sure to
-			 * show a notification without image data (just generic icon) first. */
-			if (last_state != MPD_STATE_PLAY) {
-				notify_notification_update(notification, TEXT_TOPIC, "Starting playback...", ICON_AUDIO_X_GENERIC);
-				notify_notification_show(notification, NULL);
-			}
-
-			mpd_response_next(conn);
-
-			song = mpd_recv_song(conn);
-
-			title = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
-
-			/* ignore if we have no title */
-			if (title == NULL)
-				goto nonotification;
-
-#ifdef HAVE_SYSTEMD
-			sd_notifyf(0, "READY=1\nSTATUS=%s: %s", state == MPD_STATE_PLAY ? "Playing" : "Paused", title);
-#endif
-
-			/* initial allocation and string termination */
-			notifystr = strdup("");
-			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_STATE, 0, state == MPD_STATE_PLAY ? "Playing": "Paused");
-			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_TITLE, 0, title);
-
-			if ((artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)) != NULL)
-				notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ARTIST, oneline ? ' ' : '\n', artist);
-
-			if ((album = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)) != NULL)
-				notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ALBUM, oneline ? ' ' : '\n', album);
-
-			uri = mpd_song_get_uri(song);
-
-			if (music_dir != NULL && uri != NULL) {
-				GdkPixbuf * copy;
-
-				pixbuf = retrieve_artwork(music_dir, uri);
-
-				if (pixbuf != NULL && scale > 0) {
-					int x, y;
-
-					x = gdk_pixbuf_get_width(pixbuf);
-					y = gdk_pixbuf_get_height(pixbuf);
-
-					if ((copy = gdk_pixbuf_scale_simple (pixbuf,
-							(x > y ? scale : scale * x / y),
-							(y > x ? scale : scale * y / x),
-							GDK_INTERP_BILINEAR)) != NULL) {
-						g_object_unref(pixbuf);
-						pixbuf = copy;
-					}
-				}
-
-
-			}
-
-			mpd_song_free(song);
-		} else if (state == MPD_STATE_STOP) {
-			notifystr = strdup(TEXT_STOP);
-#ifdef HAVE_SYSTEMD
-			sd_notify(0, "READY=1\nSTATUS=" TEXT_STOP);
-#endif
-		} else
-			notifystr = strdup(TEXT_UNKNOWN);
-
-		last_state = state;
-
-		if (verbose > 0)
-			printf("%s: %s\n", program, notifystr);
-
-		/* Some notification daemons do not support handing pixbuf data. Write a PNG
-		 * file and give the path. */
-		if (file_workaround > 0 && pixbuf != NULL) {
-			gdk_pixbuf_save(pixbuf, "/tmp/.mpd-notification-artwork.png", "png", NULL, NULL);
-
-			notify_notification_update(notification, TEXT_TOPIC, notifystr, "/tmp/.mpd-notification-artwork.png");
-		} else
-			notify_notification_update(notification, TEXT_TOPIC, notifystr, ICON_AUDIO_X_GENERIC);
-
-		/* Call this unconditionally! When pixbuf is NULL this clears old image. */
-		notify_notification_set_image_from_pixbuf(notification, pixbuf);
+        printf("Entering while\n");
+        if (!update_notification(false))
+        {
+            continue;
+        }
 
 		if (notify_notification_show(notification, &error) == FALSE) {
 			g_printerr("%s: Error showing notification: %s\n", program, error->message);
@@ -503,18 +580,8 @@ int main(int argc, char ** argv) {
 
 			goto out10;
 		}
-
-nonotification:
-		if (notifystr != NULL) {
-			free(notifystr);
-			notifystr = NULL;
-		}
-		if (pixbuf != NULL) {
-			g_object_unref(pixbuf);
-			pixbuf = NULL;
-		}
-		mpd_response_finish(conn);
 	}
+    printf("While quited\n");
 
 	if (verbose > 0)
 		printf("%s: Exiting...\n", program);
