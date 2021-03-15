@@ -416,7 +416,7 @@ int main(int argc, char ** argv) {
 			/* There's a bug in libnotify where the server spec version is fetched
 			 * too late, which results in issue with image date. Make sure to
 			 * show a notification without image data (just generic icon) first. */
-			if (last_state != MPD_STATE_PLAY) {
+			if (last_state != MPD_STATE_PLAY && last_state != MPD_STATE_PAUSE) {
 				notify_notification_update(notification, TEXT_TOPIC, "Starting playback...", ICON_AUDIO_X_GENERIC);
 				notify_notification_show(notification, NULL);
 			}
