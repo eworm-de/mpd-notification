@@ -63,6 +63,7 @@ or `systemctl --user enable mpd-notification`.
 * *-h*: show help
 * *-H HOST*: connect to *HOST*
 * *-m MUSIC-DIR*: use *MUSIC-DIR* for artwork lookup
+* *-n*: replace default topic text ("MPD Notification") with playback state (Paused/Playing)
 * *--notification-file-workaround*: write artwork to file for notification
     daemons that do required it
 * *-o*: Notification text is one line (no line breaks)
@@ -84,6 +85,7 @@ look like this:
     host = localhost
     port = 6600
     music-dir = /srv/media/music/
+	notopic = true
     oneline = true
     scale = 200
     timeout = 20
