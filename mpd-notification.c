@@ -445,12 +445,13 @@ int main(int argc, char ** argv) {
 			/* initial allocation and string termination */
 			notifystr = strdup("");
 			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_STATE, 0, state == MPD_STATE_PLAY ? "Playing": "Paused");
-			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_TITLE, 0, title);
 
-			if(notopic){
+			/* Show state instead of "MPD Notification" if notopic option is enabled */
+			if (notopic) {
 				text_topic = notifystr;
 				notifystr = strdup("");
 			}
+			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_TITLE, 0, title);
 
 			if ((artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)) != NULL)
 				notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ARTIST, oneline ? ' ' : '\n', artist);
@@ -485,11 +486,17 @@ int main(int argc, char ** argv) {
 
 			mpd_song_free(song);
 		} else if (state == MPD_STATE_STOP) {
-			notifystr = strdup(TEXT_STOP);
+			if (notopic) {
+				text_topic = strdup(TEXT_STOP);
+			} else {
+				notifystr = strdup(TEXT_STOP);
+				text_topic = strdup(TEXT_TOPIC);
+			}
 #ifdef HAVE_SYSTEMD
 			sd_notify(0, "READY=1\nSTATUS=" TEXT_STOP);
 #endif
 		} else
+			text_topic = strdup(TEXT_TOPIC);
 			notifystr = strdup(TEXT_UNKNOWN);
 
 		last_state = state;
