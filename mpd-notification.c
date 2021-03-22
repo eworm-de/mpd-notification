@@ -18,12 +18,13 @@
 
 #include "mpd-notification.h"
 
-const static char optstring[] = "hH:m:op:s:t:vV";
+const static char optstring[] = "hH:m:nop:s:t:vV";
 const static struct option options_long[] = {
 	/* name		has_arg			flag	val */
 	{ "help",	no_argument,		NULL,	'h' },
 	{ "host",	required_argument,	NULL,	'H' },
 	{ "music-dir",	required_argument,	NULL,	'm' },
+	{ "notopic",	no_argument,		NULL,	'n' },
 	{ "oneline",	no_argument,		NULL,	'o' },
 	{ "port",	required_argument,	NULL,	'p' },
 	{ "scale",	required_argument,	NULL,	's' },
@@ -41,6 +42,7 @@ NotifyNotification * notification = NULL;
 struct mpd_connection * conn = NULL;
 uint8_t doexit = 0;
 uint8_t verbose = 0;
+uint8_t notopic = 0;
 uint8_t oneline = 0;
 #ifdef HAVE_LIBAV
 	magic_t magic = NULL;
@@ -233,6 +235,7 @@ char * append_string(char * string, const char * format, const char delim, const
 /*** main ***/
 int main(int argc, char ** argv) {
 	dictionary * ini = NULL;
+	char * text_topic = TEXT_TOPIC;
 	const char * title = NULL, * artist = NULL, * album = NULL;
 	char * notifystr = NULL;
 	GdkPixbuf * pixbuf = NULL;
@@ -268,6 +271,7 @@ int main(int argc, char ** argv) {
 		mpd_port = iniparser_getint(ini, ":port", mpd_port);
 		music_dir = iniparser_getstring(ini, ":music-dir", music_dir);
 		notification_timeout = iniparser_getint(ini, ":timeout", notification_timeout);
+		notopic = iniparser_getboolean(ini, ":notopic", notopic);
 		oneline = iniparser_getboolean(ini, ":oneline", oneline);
 		scale = iniparser_getint(ini, ":scale", scale);
 	}
@@ -277,6 +281,9 @@ int main(int argc, char ** argv) {
 		switch (i) {
 			case 'h':
 				help++;
+				break;
+			case 'n':
+				notopic++;
 				break;
 			case 'o':
 				oneline++;
@@ -306,7 +313,7 @@ int main(int argc, char ** argv) {
 			" (compiled: " __DATE__ ", " __TIME__ ")\n", program, PROGNAME, VERSION);
 
 	if (help > 0)
-		fprintf(stderr, "usage: %s [-h] [-H HOST] [-m MUSIC-DIR] [-o] [-p PORT] [-s PIXELS] [-t TIMEOUT] [-v] [-V]\n", program);
+		fprintf(stderr, "usage: %s [-h] [-H HOST] [-m MUSIC-DIR] [-n] [-o] [-p PORT] [-s PIXELS] [-t TIMEOUT] [-v] [-V]\n", program);
 
 	if (version > 0 || help > 0)
 		return EXIT_SUCCESS;
@@ -440,6 +447,11 @@ int main(int argc, char ** argv) {
 			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_STATE, 0, state == MPD_STATE_PLAY ? "Playing": "Paused");
 			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_TITLE, 0, title);
 
+			if(notopic){
+				text_topic = notifystr;
+				notifystr = strdup("");
+			}
+
 			if ((artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)) != NULL)
 				notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ARTIST, oneline ? ' ' : '\n', artist);
 
@@ -490,9 +502,9 @@ int main(int argc, char ** argv) {
 		if (file_workaround > 0 && pixbuf != NULL) {
 			gdk_pixbuf_save(pixbuf, "/tmp/.mpd-notification-artwork.png", "png", NULL, NULL);
 
-			notify_notification_update(notification, TEXT_TOPIC, notifystr, "/tmp/.mpd-notification-artwork.png");
+			notify_notification_update(notification, text_topic, notifystr, "/tmp/.mpd-notification-artwork.png");
 		} else
-			notify_notification_update(notification, TEXT_TOPIC, notifystr, ICON_AUDIO_X_GENERIC);
+			notify_notification_update(notification, text_topic, notifystr, ICON_AUDIO_X_GENERIC);
 
 		/* Call this unconditionally! When pixbuf is NULL this clears old image. */
 		notify_notification_set_image_from_pixbuf(notification, pixbuf);
