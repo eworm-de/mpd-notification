@@ -21,7 +21,6 @@ Requirements
 To compile and run `mpd-notification` you need:
 
 * [systemd](https://www.github.com/systemd/systemd)
-* [file](https://www.darwinsys.com/file/) for `libmagic`
 * [iniparser](https://github.com/ndevilla/iniparser)
 * [libav](https://libav.org/) or [ffmpeg](https://www.ffmpeg.org/)
 * [libnotify](https://developer.gnome.org/notification-spec/)
@@ -97,7 +96,7 @@ Artwork
 `mpd-notification` display album artwork you need to tell it where to look for
 artwork. You can do that by exporting `XDG_MUSIC_DIR` to your environment, by
 specifying `-m` or `--music-dir` on the command line or by setting `music-dir`
-in configuration file. `mpd-notification` reads album artwork from `mp3`
+in configuration file. `mpd-notification` reads album artwork from audio
 files, otherwise an image file containing the artwork needs to be placed
 in the same directory as the media file and named `cover.jpg`,
 `cover.png`, `folder.jpg` or `folder.png`.

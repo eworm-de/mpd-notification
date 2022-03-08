@@ -22,7 +22,6 @@ CFLAGS_EXTRA	+= $(shell pkg-config --cflags --libs libnotify)
 CFLAGS_LIBAV	:= $(shell pkg-config --cflags --libs libavformat libavutil 2>/dev/null)
 ifneq ($(CFLAGS_LIBAV),)
 CFLAGS_EXTRA	+= -DHAVE_LIBAV $(CFLAGS_LIBAV)
-CFLAGS_EXTRA	+= -lmagic
 endif
 LDFLAGS	+= -Wl,-z,now -Wl,-z,relro -pie
 
