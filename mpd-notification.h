@@ -40,7 +40,6 @@
 
 #ifdef HAVE_LIBAV
 #include <libavformat/avformat.h>
-#include <magic.h>
 #endif
 
 #include "config.h"
