@@ -353,7 +353,7 @@ int main(int argc, char ** argv) {
 
 #ifdef HAVE_LIBAV
 	/* libav */
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(58, 9, 100)
 	av_register_all();
 #endif
 
