@@ -17,6 +17,7 @@
  */
 
 #include "mpd-notification.h"
+#include <stdio.h>
 
 const static char optstring[] = "hH:m:op:s:t:vV";
 const static struct option options_long[] = {
@@ -104,10 +105,10 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 
 	if (verbose > 0)
 		printf("%s: MIME type for %s is: %s\n", program, uri_path, magic_mime);
-
-	if (strcmp(magic_mime, "audio/mpeg") != 0)
+	if (strstr(magic_mime, "audio") == NULL) {
+		printf("Skipping Image extraction due to incompatible mime type");
 		goto image;
-
+	}
 	if ((pFormatCtx = avformat_alloc_context()) == NULL) {
 		fprintf(stderr, "%s: avformat_alloc_context() failed.\n", program);
 		goto image;
@@ -124,6 +125,7 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	}
 
 	/* find the first attached picture, if available */
+	fprintf(stderr, "%d", pFormatCtx->nb_streams);
 	for (i = 0; i < pFormatCtx->nb_streams; i++) {
 		if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
 			AVPacket pkt;
@@ -264,6 +266,7 @@ int main(int argc, char ** argv) {
 	}
 	if (ini != NULL) {
 		file_workaround = iniparser_getboolean(ini, ":notification-file-workaround", file_workaround);
+		printf("File Workaround: %s", file_workaround ? "enabled" : "disabled");
 		mpd_host = iniparser_getstring(ini, ":host", mpd_host);
 		mpd_port = iniparser_getint(ini, ":port", mpd_port);
 		music_dir = iniparser_getstring(ini, ":music-dir", music_dir);
@@ -487,9 +490,10 @@ int main(int argc, char ** argv) {
 
 		/* Some notification daemons do not support handing pixbuf data. Write a PNG
 		 * file and give the path. */
+		printf("pixbuf is %s", pixbuf == NULL ? "NULL" : "NOT NULL");
 		if (file_workaround > 0 && pixbuf != NULL) {
 			gdk_pixbuf_save(pixbuf, "/tmp/.mpd-notification-artwork.png", "png", NULL, NULL);
-
+			gdk_pixbuf_save(pixbuf, "/tmp/.mpd-notification-artwork.jpg", "jpg", NULL, "quality", "100", NULL);
 			notify_notification_update(notification, TEXT_TOPIC, notifystr, "/tmp/.mpd-notification-artwork.png");
 		} else
 			notify_notification_update(notification, TEXT_TOPIC, notifystr, ICON_AUDIO_X_GENERIC);
