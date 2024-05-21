@@ -105,6 +105,7 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	if (verbose > 0)
 		printf("%s: MIME type for %s is: %s\n", program, uri_path, magic_mime);
 
+	/* Are there more mime-types supporting embedded artwork? Tell me! */
 	if (strcmp(magic_mime, "audio/mp4") != 0 &&
 	    strcmp(magic_mime, "audio/mpeg") != 0 &&
 	    strcmp(magic_mime, "audio/x-m4a") != 0)
