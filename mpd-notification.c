@@ -152,6 +152,9 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 		}
 	}
 
+	if (pixbuf == NULL && verbose > 0)
+		printf("%s: No artwork in media file.\n", program);
+
 image:
 #endif
 
