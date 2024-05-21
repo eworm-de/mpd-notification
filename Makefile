@@ -9,10 +9,7 @@ RM	:= rm
 
 # flags
 CFLAGS_EXTRA	+= -std=c11 -O2 -fPIC -Wall -Werror
-ifneq ($(wildcard /usr/include/iniparser),)
-CFLAGS_EXTRA	+= -I/usr/include/iniparser
-endif
-CFLAGS_EXTRA	+= -liniparser
+CFLAGS_EXTRA	+= $(shell pkg-config --cflags --libs iniparser)
 CFLAGS_SYSTEMD	:= $(shell pkg-config --cflags --libs libsystemd 2>/dev/null)
 ifneq ($(CFLAGS_SYSTEMD),)
 CFLAGS_EXTRA	+= -DHAVE_SYSTEMD $(CFLAGS_SYSTEMD)

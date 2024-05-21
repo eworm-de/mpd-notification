@@ -34,7 +34,7 @@
 #include <systemd/sd-daemon.h>
 #endif
 
-#include <iniparser.h>
+#include <iniparser/iniparser.h>
 #include <libnotify/notify.h>
 #include <mpd/client.h>
 
