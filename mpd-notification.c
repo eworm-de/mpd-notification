@@ -401,10 +401,13 @@ int main(int argc, char ** argv) {
 	notify_notification_set_urgency(notification, NOTIFY_URGENCY_NORMAL);
 	notify_notification_set_timeout(notification, notification_timeout * 1000);
 
-	signal(SIGHUP, received_signal);
-	signal(SIGINT, received_signal);
-	signal(SIGTERM, received_signal);
-	signal(SIGUSR1, received_signal);
+	struct sigaction act = { 0 };
+	act.sa_handler = received_signal;
+
+	sigaction(SIGHUP, &act, NULL);
+	sigaction(SIGINT, &act, NULL);
+	sigaction(SIGTERM, &act, NULL);
+	sigaction(SIGUSR1, &act, NULL);
 
 	/* report ready to systemd */
 #ifdef HAVE_SYSTEMD
