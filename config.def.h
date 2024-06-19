@@ -27,7 +27,7 @@
 
 /* strings used to display notification messages
  * TEXT_PLAY & TEXT_PAUSE can include several specifiers:
- * %t for title, %a for artist and %A for album */
+ * %t for title, %a for artist, %A for album and %d for duration */
 #define TEXT_TOPIC	"MPD Notification"
 #define TEXT_PLAY	"Playing <b>%t</b>\nby <i>%a</i>\nfrom <i>%A</i>"
 #define TEXT_PAUSE	"Paused <b>%t</b>\nby <i>%a</i>\nfrom <i>%A</i>"

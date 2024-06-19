@@ -98,6 +98,7 @@ these specifiers:
 * *%t*: title
 * *%a*: artist
 * *%A*: album
+* *%d*: duration
 
 Artwork
 -------

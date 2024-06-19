@@ -213,7 +213,7 @@ done:
 }
 
 /*** format_text ***/
-char * format_text(const char* format, const char* title, const char* artist, const char* album) {
+char * format_text(const char* format, const char* title, const char* artist, const char* album, unsigned int duration) {
 	char * formatted, * tmp = NULL;
 	size_t len;
 
@@ -234,6 +234,13 @@ char * format_text(const char* format, const char* title, const char* artist, co
 
 				case 'A':
 					tmp = g_markup_escape_text(album, -1);
+					break;
+
+				case 'd':
+					size_t size;
+					size = snprintf(tmp, 0, "%d:%02d", duration / 60, duration % 60) + 1;
+					tmp = malloc(size);
+					snprintf(tmp, size, "%d:%02d", duration / 60, duration % 60);
 					break;
 
 				case 't':
@@ -285,7 +292,7 @@ int main(int argc, char ** argv) {
 		* text_play = TEXT_PLAY, * text_pause = TEXT_PAUSE, * text_stop = TEXT_STOP, * uri = NULL;
 	unsigned mpd_port = MPD_PORT, mpd_timeout = MPD_TIMEOUT, notification_timeout = NOTIFICATION_TIMEOUT;
 	struct mpd_song * song = NULL;
-	unsigned int i, version = 0, help = 0, scale = 0, file_workaround = 0;
+	unsigned int i, version = 0, help = 0, scale = 0, file_workaround = 0, duration;
 	int rc = EXIT_FAILURE;
 
 	program = argv[0];
@@ -475,6 +482,7 @@ int main(int argc, char ** argv) {
 			title  = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
 			artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
 			album  = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0);
+			duration = mpd_song_get_duration(song);
 
 			/* ignore if we have no title */
 			if (title == NULL)
@@ -486,7 +494,7 @@ int main(int argc, char ** argv) {
 
 			/* get the formatted notification string */
 			notifystr = format_text(state == MPD_STATE_PLAY ? text_play : text_pause,
-				title, artist ? artist : "unknown artist", album ? album : "unknown album");
+				title, artist ? artist : "unknown artist", album ? album : "unknown album", duration);
 
 			uri = mpd_song_get_uri(song);
 
