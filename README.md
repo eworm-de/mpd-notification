@@ -65,7 +65,6 @@ or `systemctl --user enable mpd-notification`.
 * *-m MUSIC-DIR*: use *MUSIC-DIR* for artwork lookup
 * *--notification-file-workaround*: write artwork to file for notification
     daemons that do required it
-* *-o*: Notification text is one line (no line breaks)
 * *-p PORT*: connect to *PORT*
 * *-s PIXELS*: scale image to a maximum size *PIXELS* x *PIXELS* pixels, keeping
     ratio
@@ -84,7 +83,6 @@ look like this:
     host = localhost
     port = 6600
     music-dir = /srv/media/music/
-    oneline = true
     scale = 200
     timeout = 20
 

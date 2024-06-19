@@ -18,13 +18,12 @@
 
 #include "mpd-notification.h"
 
-const static char optstring[] = "hH:m:op:s:t:vV";
+const static char optstring[] = "hH:m:p:s:t:vV";
 const static struct option options_long[] = {
 	/* name		has_arg			flag	val */
 	{ "help",	no_argument,		NULL,	'h' },
 	{ "host",	required_argument,	NULL,	'H' },
 	{ "music-dir",	required_argument,	NULL,	'm' },
-	{ "oneline",	no_argument,		NULL,	'o' },
 	{ "port",	required_argument,	NULL,	'p' },
 	{ "scale",	required_argument,	NULL,	's' },
 	{ "timeout",	required_argument,	NULL,	't' },
@@ -41,7 +40,6 @@ NotifyNotification * notification = NULL;
 struct mpd_connection * conn = NULL;
 uint8_t doexit = 0;
 uint8_t verbose = 0;
-uint8_t oneline = 0;
 #ifdef HAVE_LIBAV
 	magic_t magic = NULL;
 #endif
@@ -214,26 +212,55 @@ done:
 	return pixbuf;
 }
 
-/*** append_string ***/
-char * append_string(char * string, const char * format, const char delim, const char * s) {
-	char * tmp, * offset;
+/*** format_text ***/
+char * format_text(const char* format, const char* title, const char* artist, const char* album) {
+	char * formatted, * tmp = NULL;
+	size_t len;
 
-	tmp = g_markup_escape_text(s, -1);
+	if (format == NULL || strlen(format) == 0)
+		return NULL;
 
-	string = realloc(string, strlen(string) + strlen(format) + strlen(tmp) + 2 /* delim + line break */);
+	formatted = strdup("");
+	len = 0;
 
-	offset = string + strlen(string);
+	do {
+		if (*format == '%') {
+			format++;
 
-	if (delim > 0) {
-		*offset = delim;
-		offset++;
-	}
+			switch (*format) {
+				case 'a':
+					tmp = g_markup_escape_text(artist, -1);
+					break;
 
-	sprintf(offset, format, tmp);
+				case 'A':
+					tmp = g_markup_escape_text(album, -1);
+					break;
 
-	free(tmp);
+				case 't':
+					tmp = g_markup_escape_text(title, -1);
+					break;
 
-	return string;
+				default:
+					formatted = realloc(formatted, len + 2);
+					sprintf(formatted + len, "%%");
+					format--;
+					break;
+			}
+
+			if (tmp != NULL) {
+				formatted = realloc(formatted, len + strlen(tmp) + 1);
+				sprintf(formatted + len, "%s", tmp);
+				free(tmp);
+				tmp = NULL;
+			}
+		} else {
+			formatted = realloc(formatted, len + 2);
+			sprintf(formatted + len, "%c", *format);
+		}
+		len = strlen(formatted);
+	} while (*format++);
+
+	return formatted;
 }
 
 /*** main ***/
@@ -274,7 +301,6 @@ int main(int argc, char ** argv) {
 		mpd_port = iniparser_getint(ini, ":port", mpd_port);
 		music_dir = iniparser_getstring(ini, ":music-dir", music_dir);
 		notification_timeout = iniparser_getint(ini, ":timeout", notification_timeout);
-		oneline = iniparser_getboolean(ini, ":oneline", oneline);
 		scale = iniparser_getint(ini, ":scale", scale);
 	}
 
@@ -283,9 +309,6 @@ int main(int argc, char ** argv) {
 		switch (i) {
 			case 'h':
 				help++;
-				break;
-			case 'o':
-				oneline++;
 				break;
 			case 'v':
 				verbose++;
@@ -312,7 +335,7 @@ int main(int argc, char ** argv) {
 			" (compiled: " __DATE__ ", " __TIME__ ")\n", program, PROGNAME, VERSION);
 
 	if (help > 0)
-		fprintf(stderr, "usage: %s [-h] [-H HOST] [-m MUSIC-DIR] [-o] [-p PORT] [-s PIXELS] [-t TIMEOUT] [-v] [-V]\n", program);
+		fprintf(stderr, "usage: %s [-h] [-H HOST] [-m MUSIC-DIR] [-p PORT] [-s PIXELS] [-t TIMEOUT] [-v] [-V]\n", program);
 
 	if (version > 0 || help > 0)
 		return EXIT_SUCCESS;
@@ -434,7 +457,9 @@ int main(int argc, char ** argv) {
 
 			song = mpd_recv_song(conn);
 
-			title = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
+			title  = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
+			artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
+			album  = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0);
 
 			/* ignore if we have no title */
 			if (title == NULL)
@@ -444,16 +469,9 @@ int main(int argc, char ** argv) {
 			sd_notifyf(0, "READY=1\nSTATUS=%s: %s", state == MPD_STATE_PLAY ? "Playing" : "Paused", title);
 #endif
 
-			/* initial allocation and string termination */
-			notifystr = strdup("");
-			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_STATE, 0, state == MPD_STATE_PLAY ? "Playing": "Paused");
-			notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_TITLE, 0, title);
-
-			if ((artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)) != NULL)
-				notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ARTIST, oneline ? ' ' : '\n', artist);
-
-			if ((album = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)) != NULL)
-				notifystr = append_string(notifystr, TEXT_PLAY_PAUSE_ALBUM, oneline ? ' ' : '\n', album);
+			/* get the formatted notification string */
+			notifystr = format_text(state == MPD_STATE_PLAY ? TEXT_PLAY : TEXT_PAUSE,
+				title, artist ? artist : "unknown artist", album ? album : "unknown album");
 
 			uri = mpd_song_get_uri(song);
 

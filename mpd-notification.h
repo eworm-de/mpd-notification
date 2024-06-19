@@ -56,8 +56,8 @@ void received_signal(int signal);
 /*** retrieve_artwork ***/
 GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri);
 
-/*** append_string ***/
-char * append_string(char * string, const char * format, const char delim, const char * s);
+/*** format_text ***/
+char * format_text(const char* format, const char* title, const char* artist, const char* album);
 
 /*** main ***/
 int main(int argc, char ** argv);
