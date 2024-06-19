@@ -84,9 +84,20 @@ look like this:
     port = 6600
     music-dir = /srv/media/music/
     scale = 200
+    text-topic = MPD Notification
+    text-play = Playing <b>%t</b>\nby <i>%a</i>\nfrom <i>%A</i>
+    text-pause = Paused <b>%t</b>\nby <i>%a</i>\nfrom <i>%A</i>
+    text-stop = Stopped playback
     timeout = 20
 
 Unused options can be commented or removed completely.
+
+The options `text-play` and `text-pause` support custom formatting with
+these specifiers:
+
+* *%t*: title
+* *%a*: artist
+* *%A*: album
 
 Artwork
 -------
