@@ -119,11 +119,6 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 		goto image;
 	}
 
-	if (pFormatCtx->iformat->read_header(pFormatCtx) < 0) {
-		fprintf(stderr, "%s: Could not read the format header.\n", program);
-		goto image;
-	}
-
 	/* find the first attached picture, if available */
 	for (i = 0; i < pFormatCtx->nb_streams; i++) {
 		if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
