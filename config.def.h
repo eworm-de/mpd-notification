@@ -37,7 +37,7 @@
 
 /* this is a regular expression that has to match image filename used
  * for artwork */
-#define REGEX_ARTWORK	"\\(folder\\|cover\\)\\.\\(jpg\\|png\\)"
+#define REGEX_ARTWORK	"\\(folder\\|cover\\)\\.\\(avif\\|jpg\\|png\\|webp\\)"
 
 /* how to connect to mpd host ?
  * MPD_HOST is the server's host name, IP address or Unix socket path. If the
