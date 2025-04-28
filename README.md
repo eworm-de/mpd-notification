@@ -133,3 +133,6 @@ URL:
 Mirror:
 [eworm.de](https://git.eworm.de/cgit.cgi/mpd-notification/)
 [GitLab.com](https://gitlab.com/eworm-de/mpd-notification#mpd-notification)
+
+---
+[⬆️ Go back to top](#top)
