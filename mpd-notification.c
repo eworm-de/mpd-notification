@@ -391,6 +391,17 @@ int main(int argc, char ** argv) {
 
 	/* change directory to music base directory */
 	if (music_dir != NULL) {
+		if (!strcmp(music_dir, "~") || !strncmp(music_dir, "~/", 2)) {
+			char *tmpdir = malloc(sizeof(music_dir));
+			strcpy(tmpdir, music_dir + 1);
+			char * tmpdir2 = malloc(strlen(tmpdir) + strlen(getenv("HOME")) + 1);
+			free((char *)music_dir);
+			music_dir = tmpdir;
+			strcpy(tmpdir2, getenv("HOME"));
+			strcat(tmpdir2, music_dir);
+			music_dir = tmpdir2;
+			free(tmpdir);
+		}
 		if (chdir(music_dir) == -1) {
 			fprintf(stderr, "%s: Could not change directory to: %s\n", program, music_dir);
 			music_dir = NULL;
