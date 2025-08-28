@@ -25,7 +25,8 @@ LDFLAGS	+= -Wl,-z,now -Wl,-z,relro -pie
 
 # this is just a fallback in case you do not use git but downloaded
 # a release tarball...
-VERSION := 0.9.1
+DISTVER := 0.9.1
+VERSION ?= $(shell git describe --long 2>/dev/null || echo $(DISTVER))
 
 all: mpd-notification README.html
 
@@ -62,6 +63,6 @@ distclean:
 	$(RM) -f *.o *~ README.html mpd-notification version.h config.h
 
 release:
-	git archive --format=tar.xz --prefix=mpd-notification-$(VERSION)/ $(VERSION) > mpd-notification-$(VERSION).tar.xz
-	gpg --armor --detach-sign --comment mpd-notification-$(VERSION).tar.xz mpd-notification-$(VERSION).tar.xz
-	git notes --ref=refs/notes/signatures/tar add -C $$(git archive --format=tar --prefix=mpd-notification-$(VERSION)/ $(VERSION) | gpg --armor --detach-sign --comment mpd-notification-$(VERSION).tar | git hash-object -w --stdin) $(VERSION)
+	git archive --format=tar.xz --prefix=mpd-notification-$(DISTVER)/ $(DISTVER) > mpd-notification-$(DISTVER).tar.xz
+	gpg --armor --detach-sign --comment mpd-notification-$(DISTVER).tar.xz mpd-notification-$(DISTVER).tar.xz
+	git notes --ref=refs/notes/signatures/tar add -C $$(git archive --format=tar --prefix=mpd-notification-$(DISTVER)/ $(DISTVER) | gpg --armor --detach-sign --comment mpd-notification-$(DISTVER).tar | git hash-object -w --stdin) $(DISTVER)
