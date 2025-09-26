@@ -134,13 +134,17 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 				fprintf(stderr, "%s: gdk_pixbuf_loader_write() failed parsing buffer.\n", program);
 				goto image;
 			}
+			
+			if (gdk_pixbuf_loader_close(loader, NULL) == FALSE) {
+				fprintf(stderr, "%s: gdk_pixbuf_loader_close() failed.\n", program);
+				goto image;
+			}
 
 			if ((pixbuf = gdk_pixbuf_loader_get_pixbuf(loader)) == NULL) {
 				fprintf(stderr, "%s: gdk_pixbuf_loader_get_pixbuf() failed creating pixbuf.\n", program);
 				goto image;
 			}
 
-			gdk_pixbuf_loader_close(loader, NULL);
 			goto done;
 		}
 	}
