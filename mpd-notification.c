@@ -85,7 +85,7 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	int i;
 	const char *magic_mime;
 	AVFormatContext * pFormatCtx = NULL;
-	GdkPixbufLoader * loader;
+	GdkPixbufLoader * loader = NULL;
 
 	/* try album artwork first */
 	if ((uri_path = malloc(strlen(music_dir) + strlen(uri) + 2)) == NULL) {
@@ -145,6 +145,10 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 				goto image;
 			}
 
+			g_object_ref(pixbuf);
+			g_object_unref(loader);
+			loader = NULL;
+
 			goto done;
 		}
 	}
@@ -153,6 +157,8 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 		printf("%s: No artwork in media file.\n", program);
 
 image:
+	if (loader)
+		g_object_unref(loader);
 #endif
 
 	/* cut the file name from path for current directory */
