@@ -115,7 +115,7 @@ Artwork
 `mpd-notification` display album artwork you need to tell it where to look for
 artwork. You can do that by exporting `XDG_MUSIC_DIR` to your environment, by
 specifying `-m` or `--music-dir` on the command line or by setting `music-dir`
-in configuration file. `mpd-notification` reads album artwork from `mp3`
+in configuration file. `mpd-notification` reads album artwork from supported
 files, otherwise an image file containing the artwork needs to be placed
 in the same directory as the media file and named `cover.jpg`,
 `cover.png`, `folder.jpg` or `folder.png`.
