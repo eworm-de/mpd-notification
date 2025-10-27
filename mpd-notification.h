@@ -32,7 +32,7 @@
 /* systemd headers */
 #ifdef HAVE_SYSTEMD
 #include <systemd/sd-daemon.h>
-#endif
+#endif /* HAVE_SYSTEMD */
 
 #include <iniparser/iniparser.h>
 #include <libnotify/notify.h>
@@ -41,7 +41,7 @@
 #ifdef HAVE_LIBAV
 #include <libavformat/avformat.h>
 #include <magic.h>
-#endif
+#endif /* HAVE_LIBAV */
 
 #include "config.h"
 #include "version.h"

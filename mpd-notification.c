@@ -42,7 +42,7 @@ uint8_t doexit = 0;
 uint8_t verbose = 0;
 #ifdef HAVE_LIBAV
 	magic_t magic = NULL;
-#endif
+#endif /* HAVE_LIBAV */
 
 /*** received_signal ***/
 void received_signal(int signal) {
@@ -161,7 +161,7 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 image:
 	if (loader)
 		g_object_unref(loader);
-#endif
+#endif /* HAVE_LIBAV */
 
 	/* cut the file name from path for current directory */
 	*strrchr(uri_path, '/') = 0;
@@ -212,7 +212,7 @@ done:
 		avformat_close_input(&pFormatCtx);
 		avformat_free_context(pFormatCtx);
 	}
-#endif
+#endif /* HAVE_LIBAV */
 
 	free(uri_path);
 
@@ -357,10 +357,10 @@ int main(int argc, char ** argv) {
 		printf("%s: %s v%s"
 #ifdef HAVE_SYSTEMD
 			" +systemd"
-#endif
+#endif /* HAVE_SYSTEMD */
 #ifdef HAVE_LIBAV
 			" +libav"
-#endif
+#endif /* HAVE_LIBAV */
 			" (compiled: " __DATE__ ", " __TIME__ ")\n", program, PROGNAME, VERSION);
 
 	if (help > 0)
@@ -429,7 +429,7 @@ int main(int argc, char ** argv) {
 		magic_close(magic);
 		goto out30;
 	}
-#endif
+#endif /* HAVE_LIBAV */
 
 	conn = mpd_connection_new(mpd_host, mpd_port, mpd_timeout * 1000);
 
@@ -464,7 +464,7 @@ int main(int argc, char ** argv) {
 	/* report ready to systemd */
 #ifdef HAVE_SYSTEMD
 	sd_notify(0, "READY=1\nSTATUS=Waiting for mpd event...");
-#endif
+#endif /* HAVE_SYSTEMD */
 
 	while (doexit == 0 && mpd_run_idle_mask(conn, MPD_IDLE_PLAYER)) {
 		mpd_command_list_begin(conn, true);
@@ -497,7 +497,7 @@ int main(int argc, char ** argv) {
 
 #ifdef HAVE_SYSTEMD
 			sd_notifyf(0, "READY=1\nSTATUS=%s: %s", state == MPD_STATE_PLAY ? "Playing" : "Paused", title);
-#endif
+#endif /* HAVE_SYSTEMD */
 
 			/* get the formatted notification string */
 			notifystr = format_text(state == MPD_STATE_PLAY ? text_play : text_pause,
@@ -533,7 +533,7 @@ int main(int argc, char ** argv) {
 			notifystr = strdup(text_stop);
 #ifdef HAVE_SYSTEMD
 			sd_notifyf(0, "READY=1\nSTATUS=%s", text_stop);
-#endif
+#endif /* HAVE_SYSTEMD */
 		} else
 			notifystr = strdup(TEXT_UNKNOWN);
 
@@ -579,7 +579,7 @@ nonotification:
 	/* report stopping to systemd */
 #ifdef HAVE_SYSTEMD
 	sd_notify(0, "STOPPING=1\nSTATUS=Stopping...");
-#endif
+#endif /* HAVE_SYSTEMD */
 
 	rc = EXIT_SUCCESS;
 
@@ -596,14 +596,14 @@ out30:
 	if (magic != NULL)
 		magic_close(magic);
 out40:
-#endif
+#endif /* HAVE_LIBAV */
 
 	if (ini != NULL)
 		iniparser_freedict(ini);
 
 #ifdef HAVE_SYSTEMD
 	sd_notify(0, "STATUS=Stopped. Bye!");
-#endif
+#endif /* HAVE_SYSTEMD */
 
 	return rc;
 }
