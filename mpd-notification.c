@@ -40,9 +40,9 @@ NotifyNotification * notification = NULL;
 struct mpd_connection * conn = NULL;
 uint8_t doexit = 0;
 uint8_t verbose = 0;
-#ifdef HAVE_LIBAV
+#ifdef HAVE_MAGIC
 	magic_t magic = NULL;
-#endif /* HAVE_LIBAV */
+#endif /* HAVE_MAGIC */
 
 /* wrapper for sd_notify() to avoid #ifdef */
 static int mpdn_sd_notify(int unset_environment, const char *format, ...) {
@@ -109,7 +109,6 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 
 #ifdef HAVE_LIBAV
 	int i;
-	const char *magic_mime;
 	AVFormatContext * pFormatCtx = NULL;
 	GdkPixbufLoader * loader = NULL;
 
@@ -120,6 +119,9 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	}
 
 	sprintf(uri_path, "%s/%s", music_dir, uri);
+
+#ifdef HAVE_MAGIC
+	const char *magic_mime;
 
 	if ((magic_mime = magic_file(magic, uri_path)) == NULL) {
 		fprintf(stderr, "%s: We did not get a MIME type...\n", program);
@@ -136,6 +138,7 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	    strcmp(magic_mime, "audio/ogg") != 0 &&
 	    strcmp(magic_mime, "audio/x-m4a") != 0)
 		goto image;
+#endif /* HAVE_MAGIC */
 
 	if ((pFormatCtx = avformat_alloc_context()) == NULL) {
 		fprintf(stderr, "%s: avformat_alloc_context() failed.\n", program);
@@ -445,6 +448,7 @@ int main(int argc, char ** argv) {
 	if (verbose == 0)
 		av_log_set_level(AV_LOG_FATAL);
 
+#ifdef HAVE_MAGIC
 	if ((magic = magic_open(MAGIC_MIME_TYPE)) == NULL) {
 		fprintf(stderr, "%s: Could not initialize magic library.\n", program);
 		goto out40;
@@ -455,6 +459,7 @@ int main(int argc, char ** argv) {
 		magic_close(magic);
 		goto out30;
 	}
+#endif /* HAVE_MAGIC */
 #endif /* HAVE_LIBAV */
 
 	conn = mpd_connection_new(mpd_host, mpd_port, mpd_timeout * 1000);
@@ -610,11 +615,11 @@ out20:
 		mpd_connection_free(conn);
 
 out30:
-#ifdef HAVE_LIBAV
+#ifdef HAVE_MAGIC
 	if (magic != NULL)
 		magic_close(magic);
 out40:
-#endif /* HAVE_LIBAV */
+#endif /* HAVE_MAGIC */
 
 	if (ini != NULL)
 		iniparser_freedict(ini);
