@@ -107,6 +107,7 @@ GdkPixbuf * retrieve_artwork(const char * music_dir, const char * uri) {
 	if (strcmp(magic_mime, "audio/flac") != 0 &&
 	    strcmp(magic_mime, "audio/mp4") != 0 &&
 	    strcmp(magic_mime, "audio/mpeg") != 0 &&
+	    strcmp(magic_mime, "audio/ogg") != 0 &&
 	    strcmp(magic_mime, "audio/x-m4a") != 0)
 		goto image;
 
