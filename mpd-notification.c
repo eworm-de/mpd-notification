@@ -44,6 +44,32 @@ uint8_t verbose = 0;
 	magic_t magic = NULL;
 #endif /* HAVE_LIBAV */
 
+/* wrapper for sd_notify() to avoid #ifdef */
+static int mpdn_sd_notify(int unset_environment, const char *format, ...) {
+	int r = 0;
+
+#ifdef HAVE_SYSTEMD
+	va_list args;
+	char *string;
+	size_t str_len;
+
+	va_start(args, format);
+	str_len = vsnprintf(NULL, 0, format, args) + 1;
+	va_end(args);
+	
+	string = malloc(str_len);
+
+	va_start(args, format);
+	vsnprintf(string, str_len, format, args);
+	va_end(args);
+
+	r = sd_notify(unset_environment, string);
+	free(string);
+#endif /* HAVE_SYSTEMD */
+
+	return r;
+}
+
 /*** received_signal ***/
 void received_signal(int signal) {
 	GError * error = NULL;
@@ -462,9 +488,7 @@ int main(int argc, char ** argv) {
 	sigaction(SIGUSR1, &act, NULL);
 
 	/* report ready to systemd */
-#ifdef HAVE_SYSTEMD
-	sd_notify(0, "READY=1\nSTATUS=Waiting for mpd event...");
-#endif /* HAVE_SYSTEMD */
+	mpdn_sd_notify(0, "READY=1\nSTATUS=Waiting for mpd event...");
 
 	while (doexit == 0 && mpd_run_idle_mask(conn, MPD_IDLE_PLAYER)) {
 		mpd_command_list_begin(conn, true);
@@ -495,9 +519,7 @@ int main(int argc, char ** argv) {
 			if (title == NULL)
 				goto nonotification;
 
-#ifdef HAVE_SYSTEMD
-			sd_notifyf(0, "READY=1\nSTATUS=%s: %s", state == MPD_STATE_PLAY ? "Playing" : "Paused", title);
-#endif /* HAVE_SYSTEMD */
+			mpdn_sd_notify(0, "READY=1\nSTATUS=%s: %s", state == MPD_STATE_PLAY ? "Playing" : "Paused", title);
 
 			/* get the formatted notification string */
 			notifystr = format_text(state == MPD_STATE_PLAY ? text_play : text_pause,
@@ -531,9 +553,7 @@ int main(int argc, char ** argv) {
 			mpd_song_free(song);
 		} else if (state == MPD_STATE_STOP) {
 			notifystr = strdup(text_stop);
-#ifdef HAVE_SYSTEMD
-			sd_notifyf(0, "READY=1\nSTATUS=%s", text_stop);
-#endif /* HAVE_SYSTEMD */
+			mpdn_sd_notify(0, "READY=1\nSTATUS=%s", text_stop);
 		} else
 			notifystr = strdup(TEXT_UNKNOWN);
 
@@ -577,9 +597,7 @@ nonotification:
 		printf("%s: Exiting...\n", program);
 
 	/* report stopping to systemd */
-#ifdef HAVE_SYSTEMD
-	sd_notify(0, "STOPPING=1\nSTATUS=Stopping...");
-#endif /* HAVE_SYSTEMD */
+	mpdn_sd_notify(0, "STOPPING=1\nSTATUS=Stopping...");
 
 	rc = EXIT_SUCCESS;
 
@@ -601,9 +619,7 @@ out40:
 	if (ini != NULL)
 		iniparser_freedict(ini);
 
-#ifdef HAVE_SYSTEMD
-	sd_notify(0, "STATUS=Stopped. Bye!");
-#endif /* HAVE_SYSTEMD */
+	mpdn_sd_notify(0, "STATUS=Stopped. Bye!");
 
 	return rc;
 }
