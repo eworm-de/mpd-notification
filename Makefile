@@ -51,6 +51,7 @@ install-bin: mpd-notification
 	$(INSTALL) -D -m0755 mpd-notification $(DESTDIR)/usr/bin/mpd-notification
 ifneq ($(CFLAGS_SYSTEMD),)
 	$(INSTALL) -D -m0644 systemd/mpd-notification.service $(DESTDIR)/usr/lib/systemd/user/mpd-notification.service
+	$(INSTALL) -D -m0644 systemd/Upholds-mpd-notification.conf $(DESTDIR)/usr/lib/systemd/user/mpd.service.d/Upholds-mpd-notification.conf
 endif
 
 install-doc: README.html

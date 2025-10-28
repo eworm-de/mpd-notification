@@ -62,11 +62,24 @@ Additionally a systemd unit file is installed to `/usr/lib/systemd/user/`.
 Usage
 -----
 
-Just run `mpd-notification` to run it once. A systemd user service can be
-started and/or enabled with `systemctl --user start mpd-notification`
-or `systemctl --user enable mpd-notification`.
+Nothing special needs to be done when `mpd` is started (or enabled) as
+user instance:
 
-`mpd-notification` accepts some arguments:
+    systemctl --user start mpd.service
+
+It does uphold `mpd-notification.service`, so the service is started
+automatically.
+
+If this does does not apply (for exameple because the system service
+`mpd.service` is started) just start it specifically:
+
+    systemctl --user start mpd-notification.service
+
+... and/or enable to make it start automatically after login:
+
+    systemctl --user enable mpd-notification.service
+
+Just run `mpd-notification` to run it once. It accepts some arguments:
 
 * *-h*: show help
 * *-H HOST*: connect to *HOST*
