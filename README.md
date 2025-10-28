@@ -87,8 +87,8 @@ Just run `mpd-notification` to run it once. It accepts some arguments:
 * *--notification-file-workaround*: write artwork to file for notification
     daemons that do required it
 * *-p PORT*: connect to *PORT*
-* *-s PIXELS*: scale image to a maximum size *PIXELS* x *PIXELS* pixels, keeping
-    ratio
+* *-s PIXELS*: scale image to a maximum size *PIXELS* x *PIXELS* pixels,
+    keeping ratio
 * *-t TIMEOUT*: notification timeout, *TIMEOUT* in seconds
 * *-v*: verbose output
 * *-V*: print version information
