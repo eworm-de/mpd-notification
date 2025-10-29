@@ -389,6 +389,9 @@ int main(int argc, char ** argv) {
 #endif /* HAVE_SYSTEMD */
 #ifdef HAVE_LIBAV
 			" +libav"
+#ifdef HAVE_MAGIC
+			" +libmagic"
+#endif /* HAVE_MAGIC */
 #endif /* HAVE_LIBAV */
 			" (compiled: " __DATE__ ", " __TIME__ ")\n", program, PROGNAME, VERSION);
 
