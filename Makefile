@@ -45,10 +45,12 @@ version.h: $(wildcard .git/HEAD .git/index .git/refs/tags/*) Makefile
 README.html: README.md
 	$(MD) README.md > README.html
 
-install: install-bin install-doc
+install: install-bin install-doc install-units
 
 install-bin: mpd-notification
 	$(INSTALL) -D -m0755 mpd-notification $(DESTDIR)/usr/bin/mpd-notification
+
+install-units:
 ifneq ($(CFLAGS_SYSTEMD),)
 	$(INSTALL) -D -m0644 systemd/mpd-notification.service $(DESTDIR)/usr/lib/systemd/user/mpd-notification.service
 	$(INSTALL) -D -m0644 systemd/Upholds-mpd-notification.conf $(DESTDIR)/usr/lib/systemd/user/mpd.service.d/Upholds-mpd-notification.conf
