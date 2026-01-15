@@ -52,5 +52,3 @@
 #define MPD_TIMEOUT	0
 
 #endif /* _CONFIG_H */
-
-// vim: set syntax=c:
