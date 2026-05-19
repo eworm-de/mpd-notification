@@ -33,7 +33,6 @@
 #define TEXT_PAUSE	"Paused <b>%t</b>\nby <i>%a</i>\nfrom <i>%A</i>"
 #define TEXT_STOP	"Stopped playback"
 #define TEXT_NONE	"No action received yet"
-#define TEXT_UNKNOWN	"(unknown)"
 
 /* this is a regular expression that has to match image filename used
  * for artwork */

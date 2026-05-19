@@ -571,7 +571,7 @@ int main(int argc, char ** argv) {
 			notifystr = strdup(text_stop);
 			mpdn_sd_notify(0, "READY=1\nSTATUS=%s", text_stop);
 		} else
-			notifystr = strdup(TEXT_UNKNOWN);
+			goto nonotification;
 
 		last_state = state;
 
