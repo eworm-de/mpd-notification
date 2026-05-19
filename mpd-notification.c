@@ -506,6 +506,8 @@ int main(int argc, char ** argv) {
 
 		state = mpd_status_get_state(mpd_recv_status(conn));
 		if (state == MPD_STATE_PLAY || state == MPD_STATE_PAUSE) {
+			const char * text = state == MPD_STATE_PLAY ? text_play : text_pause;
+
 			/* There's a bug in libnotify where the server spec version is fetched
 			 * too late, which results in issue with image date. Make sure to
 			 * show a notification without image data (just generic icon) first. */
@@ -530,8 +532,8 @@ int main(int argc, char ** argv) {
 			mpdn_sd_notify(0, "READY=1\nSTATUS=%s: %s", state == MPD_STATE_PLAY ? "Playing" : "Paused", title);
 
 			/* get the formatted notification string */
-			notifystr = format_text(state == MPD_STATE_PLAY ? text_play : text_pause,
-				title, artist ? artist : "unknown artist", album ? album : "unknown album", duration);
+			notifystr = format_text(text, title, artist ? artist : "unknown artist",
+				album ? album : "unknown album", duration);
 
 			uri = mpd_song_get_uri(song);
 
