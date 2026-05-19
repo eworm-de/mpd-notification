@@ -508,6 +508,9 @@ int main(int argc, char ** argv) {
 		if (state == MPD_STATE_PLAY || state == MPD_STATE_PAUSE) {
 			const char * text = state == MPD_STATE_PLAY ? text_play : text_pause;
 
+			if (*text == 0)
+				goto nonotification;
+
 			/* There's a bug in libnotify where the server spec version is fetched
 			 * too late, which results in issue with image date. Make sure to
 			 * show a notification without image data (just generic icon) first. */
@@ -562,6 +565,9 @@ int main(int argc, char ** argv) {
 
 			mpd_song_free(song);
 		} else if (state == MPD_STATE_STOP) {
+			if (*text_stop == 0)
+				goto nonotification;
+
 			notifystr = strdup(text_stop);
 			mpdn_sd_notify(0, "READY=1\nSTATUS=%s", text_stop);
 		} else
